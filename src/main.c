@@ -15,87 +15,30 @@
 int		key_function(t_map *map)
 {
 	SDL_Event	e;
-
+	
 	while (SDL_PollEvent(&e))
 	{
 		if ((e.type == SDL_QUIT) || (e.type == SDL_KEYDOWN
 			&& e.key.keysym.scancode == SDL_SCANCODE_ESCAPE))
 			return (0);
+		else if (e.type == SDL_KEYDOWN)
+		{
+			if (e.key.keysym.scancode == SDL_SCANCODE_RIGHT)
+				map->geom.O.x += 0.1;
+			if (e.key.keysym.scancode == SDL_SCANCODE_LEFT)
+				map->geom.O.x -= 0.1;
+			if (e.key.keysym.scancode == SDL_SCANCODE_UP)
+				map->geom.O.y += 0.1;
+			if (e.key.keysym.scancode == SDL_SCANCODE_DOWN)
+				map->geom.O.y -= 0.1;
+		}
+		else if (e.type == SDL_KEYUP)
+		{
+			if (e.key.keysym.scancode == SDL_SCANCODE_P)
+				map->flag ^= 1;
+		}
 	}
 	return (1);
-}
-
-void	init(t_map *m)
-{
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-		put_error(SDL_GetError());
-	if (TTF_Init() < 0)
-		put_error(SDL_GetError());
-	m->window = SDL_CreateWindow("RTv1",
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		WIDTH, HEIGHT, SDL_WINDOW_ALLOW_HIGHDPI);
-	if (!m->window)
-		exit(1);
-	m->screen = SDL_GetWindowSurface(m->window);
-	m->image = m->screen->pixels;
-}
-
-void	init_geometry(t_map *m)
-{
-	m->geom.O.x = 0;
-	m->geom.O.y = 0;
-	m->geom.O.z = 0;
-	m->geom.D.x = 0;
-	m->geom.D.y = 0;
-	m->geom.D.z = 0;
-	m->vp.w = 1;
-	m->vp.h = 1;
-	m->vp.dist = 1;
-}
-
-void	lsync(void)
-{
-	int					delay;
-	static unsigned int	time;
-	static char			vsync = 1;
-
-	vsync == 1 ? SDL_GL_SetSwapInterval(1) : 0;
-	if (vsync)
-	{
-		delay = 16 - (SDL_GetTicks() - time);
-		if (delay < 0)
-			SDL_Delay(0);
-		else
-			SDL_Delay(delay);
-		time = SDL_GetTicks();
-	}
-}
-
-void	display_fps(t_map *m)
-{
-	static t_uint	fps;
-	static t_uint	time_current;
-	static t_uint	time_past;
-	static t_uint	ticks;
-	TTF_Font		*ttf;
-	static char		*fps_str;
-
-	time_current = time(NULL);
-	if (time_current - time_past && (time_past = time_current))
-	{
-		fps = 1000 / (SDL_GetTicks() - ticks);
-		ft_memdel((void**)&fps_str);
-		fps_str = ft_itoa(fps);
-	}
-	ticks = SDL_GetTicks();
-	if (!(ttf = TTF_OpenFont(FONTS_FOLDER"arcadeclassic.regular.ttf", 30)))
-		put_error(IMG_GetError());
-	m->fps = TTF_RenderText_Solid(ttf, fps_str,
-					(SDL_Color){255, 255, 255, 255});
-	SDL_BlitSurface(m->fps, NULL, m->screen,
-		&(SDL_Rect){ 10, 0, m->fps->w, m->fps->h});
-	TTF_CloseFont(ttf);
-	SDL_FreeSurface(m->fps);
 }
 
 void	kernel_init()
@@ -149,6 +92,73 @@ void	kernel_init()
 	free(source_str);
 }
 
+int		ft_lerpi(int first, int second, double p)
+{
+	if (first == second)
+		return (first);
+	return ((int)((double)first + (second - first) * p));
+}
+
+int		clerp(int c1, int c2, double p)
+{
+	int r;
+	int g;
+	int b;
+
+	if (c1 == c2)
+		return (c1);
+	r = ft_lerpi((c1 >> 16) & 0xFF, (c2 >> 16) & 0xFF, p);
+	g = ft_lerpi((c1 >> 8) & 0xFF, (c2 >> 8) & 0xFF, p);
+	b = ft_lerpi(c1 & 0xFF, c2 & 0xFF, p);
+	return (r << 16 | g << 8 | b);
+}
+
+float	vec_lenght(t_vec3 struc)
+{
+	return (sqrt(struc.x * struc.x +
+		struc.y * struc.y + struc.z * struc.z));
+}
+
+t_vec3	vec_f_mult(double a, t_vec3 b)
+{
+	t_vec3 c;
+
+	c.x = a * b.x;
+	c.y = a * b.y;
+	c.z = a * b.z;
+	return (c);
+}
+
+t_vec3	vec_add(t_vec3 a, t_vec3 b)
+{
+	t_vec3 c;
+
+	c.x = a.x + b.x;
+	c.y = a.y + b.y;
+	c.z = a.z + b.z;
+	return (c);
+}
+
+t_vec3	vec_div(t_vec3 a, float b)
+{
+	t_vec3 c;
+
+	c.x = a.x / b;
+	c.y = a.y / b;
+	c.z = a.z / b;
+	return (c);
+}
+
+t_vec3	vec_sub(t_vec3 a, t_vec3 b)
+{
+	t_vec3 c;
+
+	c.x = a.x - b.x;
+	c.y = a.y - b.y;
+	c.z = a.z - b.z;
+	return (c);
+}
+
 t_vec3	CanvasToViewport(t_map *m, float x, float y)
 {
 	t_vec3 D;
@@ -162,6 +172,68 @@ t_vec3	CanvasToViewport(t_map *m, float x, float y)
 float	dot(t_vec3 a, t_vec3 b)
 {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
+}
+
+t_vec3	vec_normalizing(t_vec3 struc, float lenght)
+{
+	float invlen;
+
+	invlen = 0;
+	if (lenght > 0)
+	{
+		invlen = 1 / lenght;
+		struc.x *= invlen;
+		struc.y *= invlen;
+		struc.z *= invlen;
+	}
+	return (struc);
+}
+
+double		ComputeLighting(t_vec3 P, t_vec3 N)
+{
+	int j;
+	double i;
+	t_light light[3];
+	t_vec3	L;
+	float n_dot_l;
+	float max;
+
+	light[0].type = AMBIENT;
+	light[0].intensity = 0.2;
+
+	light[1].type = POINT;
+	light[1].intensity = 0.6;
+	light[1].position = (t_vec3){2, 1, 0};
+
+	light[2].type = DIRECTIONAL;
+	light[2].intensity = 0.2;
+	light[2].direction = (t_vec3){1, 4, 4};
+
+	i = 0.0;
+	j = -1;
+	while (++j < 3)
+	{
+		if (light[j].type == AMBIENT)
+			i += light[j].intensity;
+		else
+		{
+			if (light[j].type == POINT)
+			{
+				L = vec_sub(light[j].position, P);
+				max = 1.0f;
+			}
+			else
+			{
+				L = light[j].direction;
+				max = INFINITY;
+			}
+			n_dot_l = dot(N, L);
+			if (n_dot_l > 0)
+				i += light[j].intensity * n_dot_l / (vec_lenght(N) * vec_lenght(L));
+		}
+	}
+	// i > 1.0 ? i = 1.0 : 0;
+	return (i);
 }
 
 t_vec2	find_discriminant(float k[3])
@@ -199,26 +271,34 @@ t_vec2	IntersectRaySphere(t_vec3 O, t_vec3 D, t_sphere *sphere)
 int		RayTrace(t_vec3 O, t_vec3 D, float t_min, float t_max)
 {
 	t_traceray	tr;
-	t_sphere	sphere[3];
+	t_sphere	sphere[4];
 	t_vec2		t;
+	t_vec3		P;
+	t_vec3		N;
+	t_vec3 		local_color;
 	int			i;
+	double		intensity;
 
-	sphere[0].center = (t_vec3){1, 2, 3};
-	sphere[0].color = (t_vec3){255, 156, 127};
-	sphere[0].radius = 0.2; // red
+	sphere[0].center = (t_vec3){0, -1, 3};
+	sphere[0].color = (t_vec3){255, 0, 0};
+	sphere[0].radius = 1; // red
 
-	sphere[1].center = (t_vec3){1.7, 2, 3};
+	sphere[1].center = (t_vec3){-2, 0, 3};
 	sphere[1].color = (t_vec3){0, 0, 255};
-	sphere[1].radius = 0.2; // blue
+	sphere[1].radius = 1; // blue
 
-	sphere[2].center = (t_vec3){2.5, 2, 3};
-	sphere[2].color = (t_vec3){126, 255, 47};
-	sphere[2].radius = 0.2; //  green
+	sphere[2].center = (t_vec3){2, 0, 3};
+	sphere[2].color = (t_vec3){0, 255, 0};
+	sphere[2].radius = 1; //  green
+
+	sphere[3].center = (t_vec3){0, -5001, 0};
+	sphere[3].color = (t_vec3){255, 255, 0};
+	sphere[3].radius = 5000; //  yellow
 
 	tr.closest_t = INFINITY;
 	
 	i = -1;
-	while (++i < 3)
+	while (++i < 4)
 	{
 		t = IntersectRaySphere(O, D, &sphere[i]);
 		if (t.x > t_min && t.x < t_max && t.x < tr.closest_t)
@@ -233,9 +313,17 @@ int		RayTrace(t_vec3 O, t_vec3 D, float t_min, float t_max)
 		}
 	}
 	if (tr.closest_t == INFINITY)
-		return (BACKGROUND_COLOR);
-	return (rgb_to_int(tr.closest_sphere.color.x,
-		tr.closest_sphere.color.y, tr.closest_sphere.color.z));
+		return (0xffffff);
+
+
+	P = vec_add(O, vec_f_mult(tr.closest_t, D)); //compute intersection
+	N = vec_sub(P, tr.closest_sphere.center); //compute sphere normal at intersection
+	N = vec_div(N, vec_lenght(N)); // N = vec_normalizing(N, vec_lenght(N));
+
+
+	intensity = ComputeLighting(P, N); //(P, N, -D, 500);
+	local_color = vec_f_mult(intensity, tr.closest_sphere.color);
+	return (rgb_to_int(local_color.x, local_color.y, local_color.z));
 }
 
 void	draw(t_map *m)
@@ -248,8 +336,9 @@ void	draw(t_map *m)
 	{
 		while (++y < m->screen->h)
 		{
-			m->geom.D = CanvasToViewport(m, (float)x, (float)y);
+			m->geom.D = CanvasToViewport(m, x - m->screen->w / 2, m->screen->h / 2 - y);
 			m->geom.color = RayTrace(m->geom.O, m->geom.D, 0.001f, INFINITY);
+			// clerp(0, m->geom.color, ComputeLighting);
 			m->image[x + y * m->screen->w] = m->geom.color;
 		}
 	}
@@ -267,6 +356,8 @@ int		main(int argc, char **argv)
 		ft_bzero(map.screen->pixels, map.screen->w * map.screen->h * 4);
 		if (!key_function(&map))
 			break ;
+		if (map.flag)
+			map.geom.O.z -= 0.1;
 		draw(&map);
 		display_fps(&map);
 		lsync();

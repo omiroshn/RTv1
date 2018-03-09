@@ -27,10 +27,14 @@
 # define FONTS_FOLDER "resources/fonts/"
 
 # define WIDTH 1280
-# define HEIGHT 1024
+# define HEIGHT 1280
 # define THREADS 8
 # define TRUE 1
 # define BACKGROUND_COLOR 0
+
+# define AMBIENT 1
+# define POINT 2
+# define DIRECTIONAL 3
 
 typedef unsigned int	t_uint;
 
@@ -59,6 +63,14 @@ typedef struct	s_color
 	int			color;
 	float		reflection;
 }				t_color;
+
+typedef	struct	s_light
+{
+	int			type;
+	t_vec3		direction;
+	t_vec3		position;
+	double		intensity;
+}				t_light;
 
 typedef	struct	s_sphere
 {
@@ -101,7 +113,22 @@ typedef	struct	s_map
 	t_geom		geom;
 	t_traceray	tr;
 	t_viewport	vp;
+	int			flag;
 }				t_map;
+
+/*
+**		init.c
+*/
+
+void	init_geometry(t_map *m);
+void	init(t_map *m);
+
+/*
+**		fps.c
+*/
+
+void	display_fps(t_map *m);
+void	lsync(void);
 
 /*
 **		put_error.c
