@@ -16,37 +16,99 @@
 # include <time.h>
 # include <fcntl.h>
 # include <SDL2/SDL.h>
+# include <math.h>
 # include "libft.h"
 # include "SDL_ttf.h"
 # include "SDL_image.h"
 # include "SDL_mixer.h"
+# include "opencl.h"
+
+# define MAPS_FOLDER "resources/maps/"
+# define FONTS_FOLDER "resources/fonts/"
 
 # define WIDTH 1280
 # define HEIGHT 1024
 # define THREADS 8
 # define TRUE 1
+# define BACKGROUND_COLOR 0
 
 typedef unsigned int	t_uint;
 
-typedef	struct	s_vec
+typedef	struct	s_vec2
 {
-	double		x;
-	double		y;
-}				t_vec;
+	float		x;
+	float		y;
+}				t_vec2;
 
-typedef	struct	s_ivec
+typedef	struct	s_vec3
+{
+	float		x;
+	float		y;
+	float		z;
+}				t_vec3;
+
+typedef	struct	s_ivec3
 {
 	int			x;
 	int			y;
-}				t_ivec;
+	int			z;
+}				t_ivec3;
 
+typedef struct	s_color
+{
+	int			color;
+	float		reflection;
+}				t_color;
+
+typedef	struct	s_sphere
+{
+	t_vec3		center;
+	t_vec3		color;
+	float		radius;
+}				t_sphere;
+
+typedef struct	s_viewport
+{
+	float		w;
+	float		h;
+	float		dist;
+}				t_viewport;
+
+typedef	struct	s_traceray
+{
+	double		closest_t;
+	t_sphere	closest_sphere;
+	t_vec2		t;
+}				t_traceray;
+
+typedef	struct	s_geom
+{
+	t_vec3		O;
+	t_vec3		D;
+	int			t;
+	int			color;
+	float		r;
+}				t_geom;
 
 typedef	struct	s_map
 {
-	SDL_Surface	*screen;
 	SDL_Window	*window;
+	SDL_Surface	*screen;
+	SDL_Surface *fps;
+	
 	t_uint		*image;
 	t_uint		*bufp;
+	t_geom		geom;
+	t_traceray	tr;
+	t_viewport	vp;
 }				t_map;
+
+/*
+**		put_error.c
+*/
+
+void	put_error(const char *msg);
+void	put_usage(void);
+int		quit(t_map *m);
 
 #endif
