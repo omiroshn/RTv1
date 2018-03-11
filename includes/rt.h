@@ -35,6 +35,7 @@
 # define AMBIENT 1
 # define POINT 2
 # define DIRECTIONAL 3
+# define DEEP 1
 
 typedef unsigned int	t_uint;
 
@@ -49,20 +50,14 @@ typedef	struct	s_vec3
 	float		x;
 	float		y;
 	float		z;
+	float		w;
+	float		reflection;
 }				t_vec3;
 
-typedef	struct	s_ivec3
+typedef struct	s_matrix4
 {
-	int			x;
-	int			y;
-	int			z;
-}				t_ivec3;
-
-typedef struct	s_color
-{
-	int			color;
-	float		reflection;
-}				t_color;
+	float		m[4][4];
+}				t_matrix4;
 
 typedef	struct	s_light
 {
@@ -77,7 +72,15 @@ typedef	struct	s_sphere
 	t_vec3		center;
 	t_vec3		color;
 	float		radius;
+	float		specular;
+	float		reflection;
 }				t_sphere;
+
+typedef	struct	s_obj
+{
+	t_sphere	sphere;
+	t_light		light;
+}				t_obj;
 
 typedef struct	s_viewport
 {
@@ -97,9 +100,8 @@ typedef	struct	s_geom
 {
 	t_vec3		O;
 	t_vec3		D;
-	int			t;
+	t_vec3		camera_rot;
 	int			color;
-	float		r;
 }				t_geom;
 
 typedef	struct	s_map
@@ -110,11 +112,15 @@ typedef	struct	s_map
 	
 	t_uint		*image;
 	t_uint		*bufp;
+	t_obj		obj;
 	t_geom		geom;
 	t_traceray	tr;
 	t_viewport	vp;
 	int			flag;
 }				t_map;
+
+void	ClosestIntersection(t_traceray *tr, t_sphere *sphere, 
+								t_vec3 O, t_vec3 D, float t_min, float t_max);
 
 /*
 **		init.c

@@ -30,13 +30,19 @@ void	init(t_map *m)
 void	init_geometry(t_map *m)
 {
 	m->flag = 0;
-	m->geom.O.x = 0;
+
+	//*camera
+	m->geom.O.x = 1;
 	m->geom.O.y = 0;
 	m->geom.O.z = 0;
-	m->geom.D.x = 0;
-	m->geom.D.y = 0;
-	m->geom.D.z = 0;
+	m->geom.camera_rot.x = 0;
+	m->geom.camera_rot.y = 0;
+	m->geom.camera_rot.z = 0;
+	//*
+
+	//*viewport
 	m->vp.w = 1.0f;
 	m->vp.h = 1.0f;
 	m->vp.dist = 1.0f;
+	//*
 }
