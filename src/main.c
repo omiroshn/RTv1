@@ -28,9 +28,9 @@ int		key_function(t_map *map)
 			if (e.key.keysym.scancode == SDL_SCANCODE_LEFT)
 				map->geom.O.x -= 0.1;
 			if (e.key.keysym.scancode == SDL_SCANCODE_UP)
-				map->geom.O.y += 0.1;
+				map->geom.O.z += 0.1;
 			if (e.key.keysym.scancode == SDL_SCANCODE_DOWN)
-				map->geom.O.y -= 0.1;
+				map->geom.O.z -= 0.1;
 		}
 		else if (e.type == SDL_KEYUP)
 		{
@@ -41,56 +41,56 @@ int		key_function(t_map *map)
 	return (1);
 }
 
-void	kernel_init()
-{
-	cl_device_id		device_id = NULL;
-	cl_context			context = NULL;
-	cl_command_queue	command_queue = NULL;
-	cl_mem				memobj = NULL;
-	cl_program			program = NULL;
-	cl_kernel			kernel = NULL;
-	cl_platform_id		platform_id = NULL;
-	cl_uint				ret_num_devices;
-	cl_uint				ret_num_platforms;
-	cl_int				ret;
+// void	kernel_init()
+// {
+// 	cl_device_id		device_id = NULL;
+// 	cl_context			context = NULL;
+// 	cl_command_queue	command_queue = NULL;
+// 	cl_mem				memobj = NULL;
+// 	cl_program			program = NULL;
+// 	cl_kernel			kernel = NULL;
+// 	cl_platform_id		platform_id = NULL;
+// 	cl_uint				ret_num_devices;
+// 	cl_uint				ret_num_platforms;
+// 	cl_int				ret;
 
-	FILE *fp;
-	char string[MEM_SIZE];
-	char fileName[] = "./kernel/kernel.cl";
-	char *source_str;
-	size_t source_size;
+// 	FILE *fp;
+// 	char string[MEM_SIZE];
+// 	char fileName[] = "./kernel/kernel.cl";
+// 	char *source_str;
+// 	size_t source_size;
 
-	if (!(fp = fopen(fileName, "r")))
-	{
-		fprintf(stderr, "Failed to load kernel.\n");
-		exit(1);
-	}
-	source_str = (char*)malloc(MAX_SOURCE_SIZE);
-	source_size = fread(source_str, 1, MAX_SOURCE_SIZE, fp);
-	fclose(fp);
-	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
-	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_DEFAULT, 1, &device_id, &ret_num_devices);
-	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
-	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
-	memobj = clCreateBuffer(context, CL_MEM_READ_WRITE,MEM_SIZE * sizeof(char), NULL, &ret);
-	program = clCreateProgramWithSource(context, 1, (const char **)&source_str,
-		(const size_t *)&source_size, &ret);
-	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
-	kernel = clCreateKernel(program, "hello", &ret);
-	ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj);
-	ret = clEnqueueTask(command_queue, kernel, 0, NULL,NULL);
-	ret = clEnqueueReadBuffer(command_queue, memobj, CL_TRUE, 0, 
-		MEM_SIZE, string, 0, NULL, NULL);
-	printf("%s\n", string);
-	ret = clFlush(command_queue);
-	ret = clFinish(command_queue);
-	ret = clReleaseKernel(kernel);
-	ret = clReleaseProgram(program);
-	ret = clReleaseMemObject(memobj);
-	ret = clReleaseCommandQueue(command_queue);
-	ret = clReleaseContext(context);
-	free(source_str);
-}
+// 	if (!(fp = fopen(fileName, "r")))
+// 	{
+// 		fprintf(stderr, "Failed to load kernel.\n");
+// 		exit(1);
+// 	}
+// 	source_str = (char*)malloc(MAX_SOURCE_SIZE);
+// 	source_size = fread(source_str, 1, MAX_SOURCE_SIZE, fp);
+// 	fclose(fp);
+// 	ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
+// 	ret = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_DEFAULT, 1, &device_id, &ret_num_devices);
+// 	context = clCreateContext(NULL, 1, &device_id, NULL, NULL, &ret);
+// 	command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
+// 	memobj = clCreateBuffer(context, CL_MEM_READ_WRITE,MEM_SIZE * sizeof(char), NULL, &ret);
+// 	program = clCreateProgramWithSource(context, 1, (const char **)&source_str,
+// 		(const size_t *)&source_size, &ret);
+// 	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+// 	kernel = clCreateKernel(program, "hello", &ret);
+// 	ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&memobj);
+// 	ret = clEnqueueTask(command_queue, kernel, 0, NULL,NULL);
+// 	ret = clEnqueueReadBuffer(command_queue, memobj, CL_TRUE, 0, 
+// 		MEM_SIZE, string, 0, NULL, NULL);
+// 	printf("%s\n", string);
+// 	ret = clFlush(command_queue);
+// 	ret = clFinish(command_queue);
+// 	ret = clReleaseKernel(kernel);
+// 	ret = clReleaseProgram(program);
+// 	ret = clReleaseMemObject(memobj);
+// 	ret = clReleaseCommandQueue(command_queue);
+// 	ret = clReleaseContext(context);
+// 	free(source_str);
+// }
 
 int		ft_lerpi(int first, int second, double p)
 {
@@ -431,6 +431,17 @@ void	ClosestIntersection(t_traceray *tr, t_sphere *sphere,
 	}
 }
 
+t_vec3		sum_color(t_vec3 c1, t_vec3 c2)
+{
+	t_vec3	ret;
+
+	ret = vec_add(c1, c2);
+	ret.x > 255.0F ? ret.x = 255 : 0;
+	ret.y > 255.0F ? ret.y = 255 : 0;
+	ret.z > 255.0F ? ret.z = 255 : 0;
+	return (ret);
+}
+
 t_vec3		refl_color(t_vec3 *color, int deep)
 {
 	int	i;
@@ -438,9 +449,7 @@ t_vec3		refl_color(t_vec3 *color, int deep)
 	i = 0;
 	while(i < deep)
 	{
-		color[i + 1] = vec_add(vec_f_mult(1 - color[i + 1].reflection, color[i + 1]), vec_f_mult(1 - color[i + 1].reflection, color[i]));
-		// color[i + 1].color = parse_color(0, color[i + 1].color, 1 - color[i + 1].reflection) +
-		// 	parse_color(0, color[i].color, color[i + 1].reflection);
+		color[i + 1] = vec_f_mult(1 - color[i + 1].w, sum_color(color[i], color[i + 1]));
 		i++;
 	}
 	return (color[i]);
@@ -487,7 +496,10 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 	{
 		ClosestIntersection(&tr, sphere, geom.O, geom.D, t_min, t_max);
 		if (tr.closest_t == INFINITY)
-			return (0xffffff);
+		{
+			local_color[deep] = (t_vec3){0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF};
+			break ;
+		}
 		P = vec_add(geom.O, vec_f_mult(tr.closest_t, geom.D)); //compute intersection
 		N = vec_sub(P, tr.closest_sphere.center); //compute sphere normal at intersection
 		N = vec_div(N, vec_lenght(N));
@@ -549,7 +561,7 @@ int		main(int argc, char **argv)
 		if (!key_function(&map))
 			break ;
 		if (map.flag)
-			map.geom.O.z += 0.1;
+			map.geom.O.z -= 0.1;
 		draw(&map);
 		display_fps(&map);
 		lsync();

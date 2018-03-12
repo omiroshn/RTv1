@@ -32,9 +32,9 @@ void	init_geometry(t_map *m)
 	m->flag = 0;
 
 	//*camera
-	m->geom.O.x = 1;
+	m->geom.O.x = 0;
 	m->geom.O.y = 0;
-	m->geom.O.z = 0;
+	m->geom.O.z = -5;
 	m->geom.camera_rot.x = 0;
 	m->geom.camera_rot.y = 0;
 	m->geom.camera_rot.z = 0;
