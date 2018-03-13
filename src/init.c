@@ -45,4 +45,7 @@ void	init_geometry(t_map *m)
 	m->vp.h = 1.0f;
 	m->vp.dist = 1.0f;
 	//*
+
+	m->geom.t_min = 0.001f;
+	m->geom.t_max = INFINITY;
 }

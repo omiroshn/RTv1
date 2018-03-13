@@ -31,6 +31,10 @@ int		key_function(t_map *map)
 				map->geom.O.z += 0.1;
 			if (e.key.keysym.scancode == SDL_SCANCODE_DOWN)
 				map->geom.O.z -= 0.1;
+			if (e.key.keysym.scancode == SDL_SCANCODE_W)
+				map->geom.O.y += 0.1;
+			if (e.key.keysym.scancode == SDL_SCANCODE_S)
+				map->geom.O.y -= 0.1;
 		}
 		else if (e.type == SDL_KEYUP)
 		{
@@ -272,6 +276,14 @@ t_vec3	vec_sub(t_vec3 a, t_vec3 b)
 	return (c);
 }
 
+t_vec3	normal(t_vec3 a)
+{
+	t_vec3 c;
+
+	c = vec_div(a, vec_lenght(a));
+	return (c);
+}
+
 t_vec3	CanvasToViewport(t_map *m, float x, float y)
 {
 	t_vec3 D;
@@ -287,21 +299,6 @@ float	dot(t_vec3 a, t_vec3 b)
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
 }
 
-t_vec3	vec_normalizing(t_vec3 struc, float lenght)
-{
-	float invlen;
-
-	invlen = 0;
-	if (lenght > 0)
-	{
-		invlen = 1 / lenght;
-		struc.x *= invlen;
-		struc.y *= invlen;
-		struc.z *= invlen;
-	}
-	return (struc);
-}
-
 t_vec3	ReflectRay(t_vec3 R, t_vec3 N)
 {
 	t_vec3 res;
@@ -314,7 +311,7 @@ double		ComputeLighting(t_sphere *sphere, t_vec3 P, t_vec3 N, t_vec3 V, float sp
 {
 	int j;
 	double i;
-	t_light light[3];
+	t_light light[4];
 	t_vec3	L;
 	t_vec3	R;
 	float nl;
@@ -333,9 +330,13 @@ double		ComputeLighting(t_sphere *sphere, t_vec3 P, t_vec3 N, t_vec3 V, float sp
 	light[2].intensity = 0.2;
 	light[2].direction = (t_vec3){1, 4, 4};
 
+	light[3].type = POINT;
+	light[3].intensity = 0.3;
+	light[3].position = (t_vec3){-2, 1, 1};
+
 	i = 0.0;
 	j = -1;
-	while (++j < 3)
+	while (++j < 4)
 	{
 		if (light[j].type == AMBIENT)
 			i += light[j].intensity;
@@ -351,6 +352,11 @@ double		ComputeLighting(t_sphere *sphere, t_vec3 P, t_vec3 N, t_vec3 V, float sp
 				L = light[j].direction;
 				max = INFINITY;
 			}
+
+			// Проверка нормали для света
+			if (dot(V, N) < 0)
+				continue ;
+			
 			// Проверка тени
 			ClosestIntersection(&shadow, sphere, P, L, 0.001, max);
 			if (shadow.closest_t != INFINITY)
@@ -407,6 +413,29 @@ t_vec2	IntersectRaySphere(t_vec3 O, t_vec3 D, t_sphere *sphere)
 	return ((t_vec2)find_discriminant(k));
 }
 
+t_vec2	IntersectRayPlane(t_vec3 O, t_vec3 D, t_sphere *sphere)
+{
+	t_vec3	X;
+	t_vec3	C;
+	t_vec3	CC;
+	t_vec3	N;
+	t_vec2	t;
+	float	k[2];
+
+	C = sphere->center;
+	N = sphere->direction;
+	X = vec_sub(O, C);
+	k[0] = dot(D, N);
+	k[1] = dot(X, N);
+	if (k[0])
+	{
+		t.x = -k[1] / k[0];
+		t.y = INFINITY;
+		return (t);		
+	}
+	return ((t_vec2){INFINITY, INFINITY});
+}
+
 void	ClosestIntersection(t_traceray *tr, t_sphere *sphere, 
 								t_vec3 O, t_vec3 D, float t_min, float t_max)
 {
@@ -415,9 +444,12 @@ void	ClosestIntersection(t_traceray *tr, t_sphere *sphere,
 
 	tr->closest_t = INFINITY;
 	i = -1;
-	while (++i < 4)
+	while (++i < 6)
 	{
-		t = IntersectRaySphere(O, D, &sphere[i]);
+		if (sphere[i].name == SPHERE)
+			t = IntersectRaySphere(O, D, &sphere[i]);
+		else if (sphere[i].name == PLANE)
+			t = IntersectRayPlane(O, D, &sphere[i]);
 		if (t.x > t_min && t.x < t_max && t.x < tr->closest_t)
 		{
 			tr->closest_t = t.x;
@@ -436,9 +468,12 @@ t_vec3		sum_color(t_vec3 c1, t_vec3 c2)
 	t_vec3	ret;
 
 	ret = vec_add(c1, c2);
-	ret.x > 255.0F ? ret.x = 255 : 0;
-	ret.y > 255.0F ? ret.y = 255 : 0;
-	ret.z > 255.0F ? ret.z = 255 : 0;
+	if (ret.x > 255.0F)
+		ret.x = 255.0F;
+	if (ret.y > 255.0F)
+		ret.y = 255.0F;
+	if (ret.z > 255.0F)
+		ret.z = 255.0F;
 	return (ret);
 }
 
@@ -458,69 +493,105 @@ t_vec3		refl_color(t_vec3 *color, int deep)
 int		RayTrace(t_geom geom, float t_min, float t_max)
 {
 	t_traceray	tr;
-	t_sphere	sphere[4];
+	t_sphere	sphere[6];
 	t_vec3		P;
 	t_vec3		N;
 	t_vec3		R;
-	t_vec3 		local_color[DEEP + 1];
-	t_vec3 		changed_color[DEEP + 1];
-	int			deep = DEEP;
+	t_vec3		local_color[DEEP + 1];
+	int			deep;
 	double		intensity;
-	float		r;
 
+	sphere[0].name = SPHERE;
 	sphere[0].center = (t_vec3){0, 0, 2};
 	sphere[0].color = (t_vec3){255, 0, 0};
 	sphere[0].specular = 50;
 	sphere[0].radius = 1; // red
-	sphere[0].reflection = 0.5;
+	sphere[0].reflection = 0.3;
 
+	sphere[1].name = SPHERE;
 	sphere[1].center = (t_vec3){-2, 0, 3};
 	sphere[1].color = (t_vec3){0, 0, 255};
-	sphere[1].specular = 125;
+	sphere[1].specular = 50;
 	sphere[1].radius = 1; // blue
-	sphere[1].reflection = 0.5;
+	sphere[1].reflection = 0.3;
 
+	sphere[2].name = SPHERE;
 	sphere[2].center = (t_vec3){2, 0, 3};
 	sphere[2].color = (t_vec3){0, 255, 0};
 	sphere[2].specular = 50;
 	sphere[2].radius = 1; //  green
-	sphere[2].reflection = 0.5;
+	sphere[2].reflection = 0.3;
 
-	sphere[3].center = (t_vec3){0, -5001, 0};
-	sphere[3].color = (t_vec3){255, 255, 0};
+	sphere[3].name = CONE;
+	sphere[3].center = (t_vec3){0, -101, 0};
+	sphere[3].color = (t_vec3){255, 255, 255};
 	sphere[3].specular = 1000;
-	sphere[3].radius = 5000; //  yellow
-	sphere[3].reflection = 0.5;
- 
+	sphere[3].radius = 1; //  white
+	sphere[3].reflection = 0.3;
+
+	sphere[4].name = CYLINDER;
+	sphere[4].center = (t_vec3){0, -101, 0};
+	sphere[4].color = (t_vec3){255, 255, 255};
+	sphere[4].specular = 1000;
+	sphere[4].radius = 1; //  white
+	sphere[4].reflection = 0.3;
+
+	sphere[5].name = PLANE;
+	sphere[5].center = (t_vec3){0, -0.99, 0};
+	sphere[5].color = (t_vec3){255, 255, 255};
+	sphere[5].direction = (t_vec3){0, 1, 0};
+	sphere[5].specular = 1000;
+	sphere[5].reflection = 0.5; //  white
+
+	deep = DEEP;
+	while (deep >= 0)
+	{
+		local_color[deep].x = 0;
+		local_color[deep].y = 0;
+		local_color[deep].z = 0;
+		local_color[deep].reflection = 0;
+		deep--;
+	}
+	deep = DEEP;
 	while (deep >= 0)
 	{
 		ClosestIntersection(&tr, sphere, geom.O, geom.D, t_min, t_max);
 		if (tr.closest_t == INFINITY)
 		{
-			local_color[deep] = (t_vec3){0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF};
+			local_color[deep] = (t_vec3){0,0,0};
 			break ;
 		}
 		P = vec_add(geom.O, vec_f_mult(tr.closest_t, geom.D)); //compute intersection
-		N = vec_sub(P, tr.closest_sphere.center); //compute sphere normal at intersection
-		N = vec_div(N, vec_lenght(N));
+		if (tr.closest_sphere.name == SPHERE)
+		{
+			N = vec_sub(P, tr.closest_sphere.center); //compute sphere normal at intersection
+			N = normal(N);
+		}
+		else if (tr.closest_sphere.name == PLANE)
+			N = tr.closest_sphere.direction;
 		t_vec3 DD = (t_vec3){-geom.D.x, -geom.D.y, -geom.D.z, 0};
 		intensity = ComputeLighting(sphere, P, N, DD, tr.closest_sphere.specular); // -D
 		local_color[deep] = vec_f_mult(intensity, tr.closest_sphere.color);
 
 
-		local_color[deep].w = tr.closest_sphere.reflection;
-		if (deep > 0 && tr.closest_sphere.reflection > 0)
+		local_color[deep].reflection = tr.closest_sphere.reflection;
+		if (tr.closest_sphere.reflection > 0)
 		{
 			R = ReflectRay(DD, N);
 			geom = (t_geom){P, R, geom.camera_rot, geom.color};
-			// local_color[deep] = vec_add(vec_f_mult(1 - r, local_color[deep]), vec_f_mult(r, local_color[deep]));
 			deep--;
 		}
 		else
 			break ;
 	}
-	local_color[DEEP] = refl_color(local_color, DEEP);
-	return (rgb_to_int(local_color[DEEP].x, local_color[DEEP].y, local_color[DEEP].z));
+	deep = 0;
+	while (deep < DEEP)
+	{
+		local_color[deep + 1] = vec_add(vec_f_mult(1 - local_color[deep + 1].reflection, local_color[deep + 1]),
+						vec_f_mult(local_color[deep + 1].reflection, local_color[deep]));
+		deep++;
+	}
+	return (rgb_to_int(local_color[deep].x, local_color[deep].y, local_color[deep].z));
 }
 
 void	draw(t_map *m)
@@ -542,7 +613,6 @@ void	draw(t_map *m)
 		{
 			m->geom.D = vec_matrix_mult(CanvasToViewport(m, x - m->screen->w / 2, m->screen->h / 2 - y), trix[3]);
 			m->geom.color = RayTrace(m->geom, 0.001f, INFINITY);
-			// clerp(0, m->geom.color, ComputeLighting);
 			m->image[x + y * m->screen->w] = m->geom.color;
 		}
 	}

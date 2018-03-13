@@ -41,6 +41,12 @@
 # define AMBIENT 1
 # define POINT 2
 # define DIRECTIONAL 3
+
+# define SPHERE 1
+# define PLANE 2
+# define CYLINDER 3
+# define CONE 4
+
 # define DEEP 1
 
 typedef unsigned int	t_uint;
@@ -75,8 +81,10 @@ typedef	struct	s_light
 
 typedef	struct	s_sphere
 {
+	int			name;
 	t_vec3		center;
 	t_vec3		color;
+	t_vec3		direction;
 	float		radius;
 	float		specular;
 	float		reflection;
@@ -108,6 +116,8 @@ typedef	struct	s_geom
 	t_vec3		D;
 	t_vec3		camera_rot;
 	int			color;
+	float		t_min;
+	float		t_max;
 }				t_geom;
 
 typedef	struct	s_map

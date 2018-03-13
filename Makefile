@@ -21,6 +21,8 @@ SDL_CFLAGS = $(shell sdl2-config --cflags)
 SPEED = -O3
 FLAGS = 
 HEADERS = -I./includes -I./libft/includes
+HDRS = ./includes/rt.h ./includes/opencl.h
+MAKELIB = --no-print-directory -j3 -C
 
 OS = $(shell uname)
 ifeq ($(OS), Linux)
@@ -44,23 +46,23 @@ all: $(NAME)
 .PHONY: all clean
 .NOTPARALLEL: all $(NAME) clean fclean re 
 
-$(NAME): libft/libft.a $(OBJ)
+$(NAME): libft/libft.a $(OBJ) $(HDRS)
 	@echo "\033[36mLinking...\033[0m"
-	@$(CC) -g -o $(NAME) $(FLAGS) $(SPEED) $(OBJ) $(CGFLAGS) $(FRAMEWORKS) libft/libft.a
+	@$(CC) -o $(NAME) $(FLAGS) $(SPEED) $(OBJ) $(CGFLAGS) $(FRAMEWORKS) libft/libft.a
 	@echo "\033[32m[ ✔ ] Binary \033[1;32m$(NAME)\033[1;0m\033[32m created.\033[0m"
 libft/libft.a:
-	@make --no-print-directory -j3 -C $(LIBFT_DIR)
-obj/%.o: src/%.c
-	@$(CC) -g -o $@ $(FLAGS) $(SPEED) $(HEADERS) $(INCLUDES) -c $^
+	@make $(MAKELIB) $(LIBFT_DIR)
+$(OBJ): obj/%.o: src/%.c $(HDRS)
+	@$(CC) -o $@ $(FLAGS) $(SPEED) $(HEADERS) $(INCLUDES) -c $<
 	@echo "\033[37mCompilation of \033[97m$(notdir $<) \033[0m\033[37mdone. \033[0m"
 clean:
 	@rm -f $(OBJ)
-	@make --no-print-directory -j3 -C libft/ clean
+	@make $(MAKELIB) $(LIBFT_DIR) clean
 	@echo "\033[31m[ ✔ ] Objects files \033[91m$(OBJ_LIST) \033[0m\033[31m removed. \033[0m"
 fclean:
 	@rm -rf $(OBJ)
 	@rm -f $(NAME)
-	@make --no-print-directory -j3 -C libft/ fclean
+	@make $(MAKELIB) $(LIBFT_DIR) fclean
 	@echo "\033[31m[ ✔ ] Objects files \033[91m$(OBJ_LIST) \033[0m\033[31m removed. \033[0m"
 	@echo "\033[31m[ ✔ ] Binary \033[1;31m$(NAME) \033[1;0m\033[31mremoved.\033[0m"
 re: fclean all
