@@ -394,6 +394,45 @@ t_vec2	find_discriminant(float k[3])
 	return (t);
 }
 
+float intersect_cyl_con(float3 d, float3 o, float3 v, t_obj obj, float t)
+{
+	float3	p;
+	float3	a;
+	float k[2];
+
+	if (t < 0)
+		return (INFINITY);
+	p = d * t + o;
+	a = p - obj.c;
+	k[0] = dot(v, a);
+	a = p - obj.d;
+	k[1] = dot(v, a);
+	if (k[0] > 0 && k[1] < 0 && t > 0)
+		return (t);
+	return (INFINITY);
+}
+
+t_vec2	raycylinder(t_vec3 o, t_vec3 d, t_sphere *sphere)
+{
+	t_vec3	p;
+	t_vec3	v;
+	t_vec2	t;
+	t_vec3	a[2];
+	float	k[3];
+
+	v = (obj.d - obj.c) / length(obj.d - obj.c);
+	p = o - obj.c;
+	a[0] = d - v * dot(d, v);
+	k[0] = dot(a[0], a[0]);
+	a[1] = p - v * dot(p, v);
+	k[1] = 2.0f * dot(a[0], a[1]);
+	k[2] = dot(a[1], a[1]) - obj.radius * obj.radius;
+	t = q_equation(k);
+	t.x = intersect_cyl_con(d, o, v, obj, t.x);
+	t.y = intersect_cyl_con(d, o, v, obj, t.y);
+	return (t);
+}
+
 t_vec2	IntersectRaySphere(t_vec3 O, t_vec3 D, t_sphere *sphere)
 {
 	t_vec3	C;

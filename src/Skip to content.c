@@ -1,32 +1,3 @@
-Skip to content
-This repository
-Search
-Pull requests
-Issues
-Marketplace
-Explore
- @omiroshn
- Sign out
-0
-0 0 kushnirs/rtv1
- Code  Issues 0  Pull requests 0  Projects 0  Wiki  Insights
-rtv1/kernel/rtv1.cl
-57a67ba  8 days ago
- Sergii KUSHNIR done
-     
-465 lines (428 sloc)  10.9 KB
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   rtv1.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: skushnir <skushnir@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2018/02/06 09:09:57 by skushnir          #+#    #+#             */
-/*   Updated: 2018/02/24 13:18:49 by skushnir         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "rtv1_cl.h"
 /*
 **
@@ -478,15 +449,4 @@ void	draw_scene(__global int *buff, t_s s, __constant t_o *o, __constant t_l *l)
 	}
 	buff[x + y * (int)scene.canvas.x] = average_color(color, smooth);
 }
-© 2018 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-API
-Training
-Shop
-Blog
-About
+	
