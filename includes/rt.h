@@ -68,20 +68,15 @@ typedef	struct	s_vec3
 	float		reflection;
 }				t_vec3;
 
-typedef struct	s_matrix4
-{
-	float		m[4][4];
-}				t_matrix4;
-
 typedef	struct	s_light
 {
 	int			type;
-	t_vec3		direction;
-	t_vec3		position;
 	double		intensity;
+	t_vec3		position;
+	t_vec3		direction;
 }				t_light;
 
-typedef	struct	s_sphere
+typedef	struct	s_object
 {
 	int			name;
 	t_vec3		center;
@@ -90,13 +85,7 @@ typedef	struct	s_sphere
 	float		radius;
 	float		specular;
 	float		reflection;
-}				t_sphere;
-
-typedef	struct	s_obj
-{
-	t_sphere	sphere;
-	t_light		light;
-}				t_obj;
+}				t_object;
 
 typedef struct	s_viewport
 {
@@ -108,7 +97,7 @@ typedef struct	s_viewport
 typedef	struct	s_traceray
 {
 	double		closest_t;
-	t_sphere	closest_sphere;
+	t_object	closest_obj;
 	t_vec2		t;
 }				t_traceray;
 
@@ -130,14 +119,13 @@ typedef	struct	s_map
 	
 	t_uint		*image;
 	t_uint		*bufp;
-	t_obj		obj;
 	t_geom		geom;
 	t_traceray	tr;
 	t_viewport	vp;
 	int			flag;
 }				t_map;
 
-void	ClosestIntersection(t_traceray *tr, t_sphere *sphere, 
+void	ClosestIntersection(t_traceray *tr, t_object *obj, 
 								t_vec3 O, t_vec3 D, float t_min, float t_max);
 
 /*

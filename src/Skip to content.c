@@ -414,7 +414,10 @@ int	raytrace(t_scene scene, t_obj *obj, t_light *light)
 }
 
 __kernel
-void	draw_scene(__global int *buff, t_s s, __constant t_o *o, __constant t_l *l)
+void	draw_scene(__global int *buff,
+							t_s s,
+							__constant t_o *o,
+							__constant t_l *l)
 {
 	int			x = get_global_id(0);
 	int			y = get_global_id(1);

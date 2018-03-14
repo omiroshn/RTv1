@@ -1,15 +1,47 @@
+sphere[0].name = SPHERE;
 sphere[0].center = (t_vec3){0, 0, 2};
-sphere[0].color = (t_vec3){255, 156, 127};
-sphere[0].radius = 0.2; // red
+sphere[0].color = (t_vec3){255, 0, 0};
+sphere[0].specular = 50;
+sphere[0].radius = 1; // red
+sphere[0].reflection = 0.3;
 
-sphere[1].center = (t_vec3){1, 0, 3};
+sphere[1].name = SPHERE;
+sphere[1].center = (t_vec3){-2, 0, 3};
 sphere[1].color = (t_vec3){0, 0, 255};
-sphere[1].radius = 0.2; // blue
+sphere[1].specular = 50;
+sphere[1].radius = 1; // blue
+sphere[1].reflection = 0.3;
 
-sphere[2].center = (t_vec3){0, 1, 4};
-sphere[2].color = (t_vec3){126, 255, 47};
-sphere[2].radius = 0.2; //  green
+sphere[2].name = SPHERE;
+sphere[2].center = (t_vec3){2, 0, 3};
+sphere[2].color = (t_vec3){0, 255, 0};
+sphere[2].specular = 50;
+sphere[2].radius = 1; //  green
+sphere[2].reflection = 0.3;
 
-sphere[3].center = (t_vec3){0, -5001, 0};
-sphere[3].color = (t_vec3){255, 255, 0};
-sphere[3].radius = 5000; //  yellow
+sphere[3].name = CONE;
+sphere[3].center = (t_vec3){0, -101, 0};
+sphere[3].color = (t_vec3){255, 255, 255};
+sphere[3].specular = 1000;
+sphere[3].radius = 1; //  white
+sphere[3].reflection = 0.3;
+
+light[0].type = AMBIENT;
+light[0].intensity = 0.2;
+light[0].position = (t_vec3){0, 0, 0}; // NULL;
+light[0].direction = (t_vec3){0, 0, 0}; // NULL;
+
+light[1].type = POINT;
+light[1].intensity = 0.6;
+light[1].position = (t_vec3){2, 0, 0.5};
+light[1].direction = (t_vec3){0, 0, 0}; // NULL;
+
+light[2].type = DIRECTIONAL;
+light[2].intensity = 0.2;
+light[2].position = (t_vec3){0, 0, 0}; // NULL;
+light[2].direction = (t_vec3){1, 4, 4};
+
+light[3].type = POINT;
+light[3].intensity = 0.6;
+light[3].position = (t_vec3){-2, 0, 0.5};
+light[3].direction = (t_vec3){0, 0, 0}; // NULL;

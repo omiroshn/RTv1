@@ -96,128 +96,24 @@ int		key_function(t_map *map)
 // 	free(source_str);
 // }
 
-int		ft_lerpi(int first, int second, double p)
+t_vec3	rot_matrix(double alpha, double beta, double gamma, t_vec3 r)
 {
-	if (first == second)
-		return (first);
-	return ((int)((double)first + (second - first) * p));
-}
+	double		mat[3][3];
+	t_vec3		ret;
 
-int		clerp(int c1, int c2, double p)
-{
-	int r;
-	int g;
-	int b;
-
-	if (c1 == c2)
-		return (c1);
-	r = ft_lerpi((c1 >> 16) & 0xFF, (c2 >> 16) & 0xFF, p);
-	g = ft_lerpi((c1 >> 8) & 0xFF, (c2 >> 8) & 0xFF, p);
-	b = ft_lerpi(c1 & 0xFF, c2 & 0xFF, p);
-	return (r << 16 | g << 8 | b);
-}
-
-t_matrix4	matrix_mult(const t_matrix4 m, const t_matrix4 rhs)
-{
-	t_matrix4	mult;
-	int			i;
-	int			j;
-
-	i = 0;
-	while (i < 4)
-	{
-		j = 0;
-		while (j < 4)
-		{
-			mult.m[i][j] = m.m[i][0] * rhs.m[0][j] +
-							m.m[i][1] * rhs.m[1][j] +
-							m.m[i][2] * rhs.m[2][j] +
-							m.m[i][3] * rhs.m[3][j];
-			j++;
-		}
-		i++;
-	}
-	return (mult);
-}
-
-t_matrix4	rotate_x(t_map *m)
-{
-	t_matrix4 rhs;
-
-	rhs.m[0][0] = 1;
-	rhs.m[0][1] = 0;
-	rhs.m[0][2] = 0;
-	rhs.m[0][3] = 0;
-	rhs.m[1][0] = 0;
-	rhs.m[1][1] = cos(m->geom.camera_rot.x);
-	rhs.m[1][2] = sin(m->geom.camera_rot.x);
-	rhs.m[1][3] = 0;
-	rhs.m[2][0] = 0;
-	rhs.m[2][1] = -sin(m->geom.camera_rot.x);
-	rhs.m[2][2] = cos(m->geom.camera_rot.x);
-	rhs.m[2][3] = 0;
-	rhs.m[3][0] = 0;
-	rhs.m[3][1] = 0;
-	rhs.m[3][2] = 0;
-	rhs.m[3][3] = 1;
-	return (rhs);
-}
-
-t_matrix4	rotate_y(t_map *m)
-{
-	t_matrix4 rhs;
-
-	rhs.m[0][0] = cos(m->geom.camera_rot.y);
-	rhs.m[0][1] = 0;
-	rhs.m[0][2] = -sin(m->geom.camera_rot.y);
-	rhs.m[0][3] = 0;
-	rhs.m[1][0] = 0;
-	rhs.m[1][1] = 1;
-	rhs.m[1][2] = 0;
-	rhs.m[1][3] = 0;
-	rhs.m[2][0] = sin(m->geom.camera_rot.y);
-	rhs.m[2][1] = 0;
-	rhs.m[2][2] = cos(m->geom.camera_rot.y);
-	rhs.m[2][3] = 0;
-	rhs.m[3][0] = 0;
-	rhs.m[3][1] = 0;
-	rhs.m[3][2] = 0;
-	rhs.m[3][3] = 1;
-	return (rhs);
-}
-
-t_matrix4	rotate_z(t_map *m)
-{
-	t_matrix4 rhs;
-
-	rhs.m[0][0] = cos(m->geom.camera_rot.z);
-	rhs.m[0][1] = sin(m->geom.camera_rot.z);
-	rhs.m[0][2] = 0;
-	rhs.m[0][3] = 0;
-	rhs.m[1][0] = -sin(m->geom.camera_rot.z);
-	rhs.m[1][1] = cos(m->geom.camera_rot.z);
-	rhs.m[1][2] = 0;
-	rhs.m[1][3] = 0;
-	rhs.m[2][0] = 0;
-	rhs.m[2][1] = 0;
-	rhs.m[2][2] = 1;
-	rhs.m[2][3] = 0;
-	rhs.m[3][0] = 0;
-	rhs.m[3][1] = 0;
-	rhs.m[3][2] = 0;
-	rhs.m[3][3] = 1;
-	return (rhs);
-}
-
-t_vec3		vec_matrix_mult(t_vec3 vec, const t_matrix4 rhs)
-{
-	t_vec3	res;
-
-	res.x = vec.x * rhs.m[0][0] + vec.y * rhs.m[1][0] + vec.z * rhs.m[2][0] + vec.w * rhs.m[3][0];
-	res.y = vec.x * rhs.m[0][1] + vec.y * rhs.m[1][1] + vec.z * rhs.m[2][1] + vec.w * rhs.m[3][1];
-	res.z = vec.x * rhs.m[0][2] + vec.y * rhs.m[1][2] + vec.z * rhs.m[2][2] + vec.w * rhs.m[3][2];
-	res.w = vec.x * rhs.m[0][3] + vec.y * rhs.m[1][3] + vec.z * rhs.m[2][3] + vec.w * rhs.m[3][3];
-	return (res);
+	mat[0][0] = cos(beta) * cos(gamma);
+	mat[1][0] = cos(gamma) * sin(alpha) * sin(beta) - cos(alpha) * sin(gamma);
+	mat[2][0] = cos(alpha) * cos(gamma) * sin(beta) + sin(alpha) * sin(gamma);
+	mat[0][1] = cos(beta) * sin(gamma);
+	mat[1][1] = cos(alpha) * cos(gamma) + sin(alpha) * sin(beta) * sin(gamma);
+	mat[2][1] = -cos(gamma) * sin(alpha) + cos(alpha) * sin(beta) * sin(gamma);
+	mat[0][2] = -sin(beta);
+	mat[1][2] = cos(beta) * sin(alpha);
+	mat[2][2] = cos(alpha) * cos(beta);
+	ret.x = (mat[0][0] * r.x) + (mat[1][0] * r.y) + (mat[2][0] * r.z);
+	ret.y = (mat[0][1] * r.x) + (mat[1][1] * r.y) + (mat[2][1] * r.z);
+	ret.z = (mat[0][2] * r.x) + (mat[1][2] * r.y) + (mat[2][2] * r.z);
+	return (ret);
 }
 
 float	vec_lenght(t_vec3 struc)
@@ -307,32 +203,37 @@ t_vec3	ReflectRay(t_vec3 R, t_vec3 N)
     return (res);
 }
 
-double		ComputeLighting(t_sphere *sphere, t_vec3 P, t_vec3 N, t_vec3 V, float specular)
+double		ComputeLighting(t_object *obj, t_vec3 P, t_vec3 N, t_vec3 V, float specular)
 {
-	int j;
-	double i;
-	t_light light[4];
-	t_vec3	L;
-	t_vec3	R;
-	float nl;
-	float rv;
-	float max;
-	t_traceray shadow;
+	double		i;
+	int			j;
+	t_vec3		L;
+	t_vec3		R;
+	float		nl;
+	float		rv;
+	float		max;
+	t_light		light[4];
+	t_traceray	shadow;
 
 	light[0].type = AMBIENT;
 	light[0].intensity = 0.2;
+	light[0].position = (t_vec3){0, 0, 0}; // NULL;
+	light[0].direction = (t_vec3){0, 0, 0}; // NULL;
 
 	light[1].type = POINT;
 	light[1].intensity = 0.6;
-	light[1].position = (t_vec3){2, 1, 1};
+	light[1].position = (t_vec3){2, 0, 0.5};
+	light[1].direction = (t_vec3){0, 0, 0}; // NULL;
 
 	light[2].type = DIRECTIONAL;
 	light[2].intensity = 0.2;
+	light[2].position = (t_vec3){0, 0, 0}; // NULL;
 	light[2].direction = (t_vec3){1, 4, 4};
 
 	light[3].type = POINT;
-	light[3].intensity = 0.3;
-	light[3].position = (t_vec3){-2, 1, 1};
+	light[3].intensity = 0.6;
+	light[3].position = (t_vec3){-2, 0, 0.5};
+	light[3].direction = (t_vec3){0, 0, 0}; // NULL;
 
 	i = 0.0;
 	j = -1;
@@ -358,7 +259,7 @@ double		ComputeLighting(t_sphere *sphere, t_vec3 P, t_vec3 N, t_vec3 V, float sp
 				continue ;
 			
 			// Проверка тени
-			ClosestIntersection(&shadow, sphere, P, L, 0.001, max);
+			ClosestIntersection(&shadow, obj, P, L, 0.001, max);
 			if (shadow.closest_t != INFINITY)
 				continue ;
 
@@ -394,65 +295,83 @@ t_vec2	find_discriminant(float k[3])
 	return (t);
 }
 
-float intersect_cyl_con(float3 d, float3 o, float3 v, t_obj obj, float t)
+// float get_lim_solution(float t, t_vec3 P, t_vec3 V, t_vec3 VA, t_object *obj)
+// {
+// 	t_vec3	q;
+// 	t_vec3	a;
+// 	float k[2];
+
+// 	if (t < 0)
+// 		return (INFINITY);
+// 	q = vec_add(vec_f_mult(t, V), P);
+// 	a = vec_sub(q, obj->center);
+// 	k[0] = dot(VA, a);
+// 	a = vec_sub(q, obj->direction);
+// 	k[1] = dot(VA, a);
+// 	if (k[0] > 0 && k[1] < 0 && t > 0)
+// 		return (t);
+// 	return (INFINITY);
+// }
+
+double		get_lim_solution(double t, t_vec3 P, t_vec3 V, t_vec3 VA, t_object *obj)
 {
-	float3	p;
-	float3	a;
-	float k[2];
+	t_vec3	Q;
+	float	k[2];
 
 	if (t < 0)
 		return (INFINITY);
-	p = d * t + o;
-	a = p - obj.c;
-	k[0] = dot(v, a);
-	a = p - obj.d;
-	k[1] = dot(v, a);
-	if (k[0] > 0 && k[1] < 0 && t > 0)
+	Q = vec_add(P, vec_f_mult(t, V));
+	k[0] = dot(VA, vec_sub(Q, obj->center));
+	k[1] = dot(VA, vec_sub(Q, obj->direction));
+	if (k[0] > 0.0 && k[1] < 0.0)
 		return (t);
 	return (INFINITY);
 }
 
-t_vec2	raycylinder(t_vec3 o, t_vec3 d, t_sphere *sphere)
+t_vec2	IntersectRayCylinder(t_vec3 P, t_vec3 V, t_object *obj)
 {
-	t_vec3	p;
-	t_vec3	v;
+	t_vec3	PA;
+	t_vec3	VA;
+	t_vec3	delta;
+	t_vec3	A;
+	t_vec3	B;
 	t_vec2	t;
-	t_vec3	a[2];
 	float	k[3];
 
-	v = (obj.d - obj.c) / length(obj.d - obj.c);
-	p = o - obj.c;
-	a[0] = d - v * dot(d, v);
-	k[0] = dot(a[0], a[0]);
-	a[1] = p - v * dot(p, v);
-	k[1] = 2.0f * dot(a[0], a[1]);
-	k[2] = dot(a[1], a[1]) - obj.radius * obj.radius;
-	t = q_equation(k);
-	t.x = intersect_cyl_con(d, o, v, obj, t.x);
-	t.y = intersect_cyl_con(d, o, v, obj, t.y);
+	PA = obj->center;
+	VA = normal(vec_sub(PA, obj->direction));
+	delta = vec_sub(P, PA);
+
+	A = vec_sub(V, vec_f_mult(dot(V, VA), VA));
+	B = vec_sub(delta, vec_f_mult(dot(delta, VA), VA));
+
+	k[0] = dot(A, A);
+	k[1] = 2.0f * dot(A, B);
+	k[2] = dot(B, B) - obj->radius * obj->radius;
+	t = find_discriminant(k);
+	// t.x = get_lim_solution(t.x, P, V, VA, obj);
+	// t.y = get_lim_solution(t.y, P, V, VA, obj);
 	return (t);
 }
 
-t_vec2	IntersectRaySphere(t_vec3 O, t_vec3 D, t_sphere *sphere)
+t_vec2	IntersectRaySphere(t_vec3 O, t_vec3 D, t_object *obj)
 {
 	t_vec3	C;
 	t_vec3	OC;
 	double	r;
 	float	k[3];
 
-	C = sphere->center;
-	r = sphere->radius;
-	OC.x = O.x - C.x;
-	OC.y = O.y - C.y;
-	OC.z = O.z - C.z;
+	C = obj->center;
+	r = obj->radius;
+	OC = vec_sub(O, C);
 
 	k[0] = dot(D, D);
 	k[1] = 2.0f * dot(OC, D);
 	k[2] = dot(OC, OC) - r * r;
-	return ((t_vec2)find_discriminant(k));
+	return (find_discriminant(k));
 }
 
-t_vec2	IntersectRayPlane(t_vec3 O, t_vec3 D, t_sphere *sphere)
+t_vec2	IntersectRayPlane(t_vec3 O, t_vec3 D, t_object *obj)
 {
 	t_vec3	X;
 	t_vec3	C;
@@ -461,8 +380,8 @@ t_vec2	IntersectRayPlane(t_vec3 O, t_vec3 D, t_sphere *sphere)
 	t_vec2	t;
 	float	k[2];
 
-	C = sphere->center;
-	N = sphere->direction;
+	C = obj->center;
+	N = obj->direction;
 	X = vec_sub(O, C);
 	k[0] = dot(D, N);
 	k[1] = dot(X, N);
@@ -475,7 +394,7 @@ t_vec2	IntersectRayPlane(t_vec3 O, t_vec3 D, t_sphere *sphere)
 	return ((t_vec2){INFINITY, INFINITY});
 }
 
-void	ClosestIntersection(t_traceray *tr, t_sphere *sphere, 
+void	ClosestIntersection(t_traceray *tr, t_object *obj, 
 								t_vec3 O, t_vec3 D, float t_min, float t_max)
 {
 	int			i;
@@ -485,54 +404,43 @@ void	ClosestIntersection(t_traceray *tr, t_sphere *sphere,
 	i = -1;
 	while (++i < 6)
 	{
-		if (sphere[i].name == SPHERE)
-			t = IntersectRaySphere(O, D, &sphere[i]);
-		else if (sphere[i].name == PLANE)
-			t = IntersectRayPlane(O, D, &sphere[i]);
+		if (obj[i].name == SPHERE)
+			t = IntersectRaySphere(O, D, &obj[i]);
+		else if (obj[i].name == PLANE)
+			t = IntersectRayPlane(O, D, &obj[i]);
+		else if (obj[i].name == CYLINDER)
+			t = IntersectRayCylinder(O, D, &obj[i]);
 		if (t.x > t_min && t.x < t_max && t.x < tr->closest_t)
 		{
 			tr->closest_t = t.x;
-			tr->closest_sphere = sphere[i];
+			tr->closest_obj = obj[i];
 		}
 		if (t.y > t_min && t.y < t_max && t.y < tr->closest_t)
 		{
 			tr->closest_t = t.y;
-			tr->closest_sphere = sphere[i];
+			tr->closest_obj = obj[i];
 		}
 	}
 }
 
-t_vec3		sum_color(t_vec3 c1, t_vec3 c2)
+t_vec3	normal_cyl_cone(t_traceray *tr, t_vec3 P)
 {
-	t_vec3	ret;
+	t_vec3 os;
+	t_vec3 proj;
+	t_vec3 N;
 
-	ret = vec_add(c1, c2);
-	if (ret.x > 255.0F)
-		ret.x = 255.0F;
-	if (ret.y > 255.0F)
-		ret.y = 255.0F;
-	if (ret.z > 255.0F)
-		ret.z = 255.0F;
-	return (ret);
-}
-
-t_vec3		refl_color(t_vec3 *color, int deep)
-{
-	int	i;
-
-	i = 0;
-	while(i < deep)
-	{
-		color[i + 1] = vec_f_mult(1 - color[i + 1].w, sum_color(color[i], color[i + 1]));
-		i++;
-	}
-	return (color[i]);
+	os = normal(vec_sub(tr->closest_obj.direction, tr->closest_obj.center));
+	N = vec_sub(P, tr->closest_obj.center);
+	proj = vec_f_mult(dot(N, os), os);
+	N = vec_sub(N, proj);
+	N = normal(N);
+	return (N);
 }
 
 int		RayTrace(t_geom geom, float t_min, float t_max)
 {
 	t_traceray	tr;
-	t_sphere	sphere[6];
+	t_object	obj[6];
 	t_vec3		P;
 	t_vec3		N;
 	t_vec3		R;
@@ -540,47 +448,48 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 	int			deep;
 	double		intensity;
 
-	sphere[0].name = SPHERE;
-	sphere[0].center = (t_vec3){0, 0, 2};
-	sphere[0].color = (t_vec3){255, 0, 0};
-	sphere[0].specular = 50;
-	sphere[0].radius = 1; // red
-	sphere[0].reflection = 0.3;
+	obj[0].name = SPHERE;
+	obj[0].center = (t_vec3){0, 0, 2};
+	obj[0].color = (t_vec3){255, 0, 0};
+	obj[0].specular = 50;
+	obj[0].radius = 1; // red
+	obj[0].reflection = 0.3;
+	
+	obj[1].name = SPHERE;
+	obj[1].center = (t_vec3){-2, 0, 3};
+	obj[1].color = (t_vec3){0, 0, 255};
+	obj[1].specular = 50;
+	obj[1].radius = 1; // blue
+	obj[1].reflection = 0.3;
+	
+	obj[2].name = SPHERE;
+	obj[2].center = (t_vec3){2, 0, 3};
+	obj[2].color = (t_vec3){0, 255, 0};
+	obj[2].specular = 50;
+	obj[2].radius = 1; //  green
+	obj[2].reflection = 0.3;
+	
+	obj[3].name = CONE;
+	obj[3].center = (t_vec3){0, -101, 0};
+	obj[3].color = (t_vec3){255, 255, 255};
+	obj[3].specular = 1000;
+	obj[3].radius = 1; //  white
+	obj[3].reflection = 0.3;
 
-	sphere[1].name = SPHERE;
-	sphere[1].center = (t_vec3){-2, 0, 3};
-	sphere[1].color = (t_vec3){0, 0, 255};
-	sphere[1].specular = 50;
-	sphere[1].radius = 1; // blue
-	sphere[1].reflection = 0.3;
+	obj[4].name = CYLINDER;
+	obj[4].center = (t_vec3){0, 1, 0};
+	obj[4].direction = (t_vec3){0, 3, 0};
+	obj[4].color = (t_vec3){0, 255, 0};
+	obj[4].specular = 1000;
+	obj[4].radius = 0.5; //  white
+	obj[4].reflection = 0.3;
 
-	sphere[2].name = SPHERE;
-	sphere[2].center = (t_vec3){2, 0, 3};
-	sphere[2].color = (t_vec3){0, 255, 0};
-	sphere[2].specular = 50;
-	sphere[2].radius = 1; //  green
-	sphere[2].reflection = 0.3;
-
-	sphere[3].name = CONE;
-	sphere[3].center = (t_vec3){0, -101, 0};
-	sphere[3].color = (t_vec3){255, 255, 255};
-	sphere[3].specular = 1000;
-	sphere[3].radius = 1; //  white
-	sphere[3].reflection = 0.3;
-
-	sphere[4].name = CYLINDER;
-	sphere[4].center = (t_vec3){0, -101, 0};
-	sphere[4].color = (t_vec3){255, 255, 255};
-	sphere[4].specular = 1000;
-	sphere[4].radius = 1; //  white
-	sphere[4].reflection = 0.3;
-
-	sphere[5].name = PLANE;
-	sphere[5].center = (t_vec3){0, -0.99, 0};
-	sphere[5].color = (t_vec3){255, 255, 255};
-	sphere[5].direction = (t_vec3){0, 1, 0};
-	sphere[5].specular = 1000;
-	sphere[5].reflection = 0.5; //  white
+	obj[5].name = PLANE;
+	obj[5].center = (t_vec3){0, -0.99, 0};
+	obj[5].color = (t_vec3){255, 255, 255};
+	obj[5].direction = (t_vec3){0, 1, 0};
+	obj[5].specular = 1000;
+	obj[5].reflection = 0.5; //  white
 
 	deep = DEEP;
 	while (deep >= 0)
@@ -594,27 +503,29 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 	deep = DEEP;
 	while (deep >= 0)
 	{
-		ClosestIntersection(&tr, sphere, geom.O, geom.D, t_min, t_max);
+		ClosestIntersection(&tr, obj, geom.O, geom.D, t_min, t_max);
 		if (tr.closest_t == INFINITY)
 		{
 			local_color[deep] = (t_vec3){0,0,0};
 			break ;
 		}
 		P = vec_add(geom.O, vec_f_mult(tr.closest_t, geom.D)); //compute intersection
-		if (tr.closest_sphere.name == SPHERE)
+		if (tr.closest_obj.name == SPHERE)
 		{
-			N = vec_sub(P, tr.closest_sphere.center); //compute sphere normal at intersection
+			N = vec_sub(P, tr.closest_obj.center); //compute obj normal at intersection
 			N = normal(N);
 		}
-		else if (tr.closest_sphere.name == PLANE)
-			N = tr.closest_sphere.direction;
+		else if (tr.closest_obj.name == CYLINDER || tr.closest_obj.name == CONE)
+			N = normal_cyl_cone(&tr, P);
+		else if (tr.closest_obj.name == PLANE)
+			N = tr.closest_obj.direction;
 		t_vec3 DD = (t_vec3){-geom.D.x, -geom.D.y, -geom.D.z, 0};
-		intensity = ComputeLighting(sphere, P, N, DD, tr.closest_sphere.specular); // -D
-		local_color[deep] = vec_f_mult(intensity, tr.closest_sphere.color);
+		intensity = ComputeLighting(obj, P, N, DD, tr.closest_obj.specular); // -D
+		local_color[deep] = vec_f_mult(intensity, tr.closest_obj.color);
 
 
-		local_color[deep].reflection = tr.closest_sphere.reflection;
-		if (tr.closest_sphere.reflection > 0)
+		local_color[deep].reflection = tr.closest_obj.reflection;
+		if (tr.closest_obj.reflection > 0)
 		{
 			R = ReflectRay(DD, N);
 			geom = (t_geom){P, R, geom.camera_rot, geom.color};
@@ -637,20 +548,17 @@ void	draw(t_map *m)
 {
 	int x;
 	int y;
-	t_matrix4 trix[4];
 
-	trix[0] = rotate_x(m);
-	trix[1] = rotate_y(m);
-	trix[2] = rotate_z(m);
 	// if (m->flag)
 	// 	m->geom.O.y = sin(m->geom.camera_rot.y);
-	trix[3] = matrix_mult(matrix_mult(trix[0], trix[1]), trix[2]);
 	x = -1;
 	while (++x < m->screen->w && (y = -1))
 	{
 		while (++y < m->screen->h)
 		{
-			m->geom.D = vec_matrix_mult(CanvasToViewport(m, x - m->screen->w / 2, m->screen->h / 2 - y), trix[3]);
+			m->geom.D = rot_matrix(m->geom.camera_rot.x,
+				m->geom.camera_rot.y,m->geom.camera_rot.z,
+				CanvasToViewport(m, x - m->screen->w / 2, m->screen->h / 2 - y));
 			m->geom.color = RayTrace(m->geom, 0.001f, INFINITY);
 			m->image[x + y * m->screen->w] = m->geom.color;
 		}
@@ -670,7 +578,7 @@ int		main(int argc, char **argv)
 		if (!key_function(&map))
 			break ;
 		if (map.flag)
-			map.geom.O.z -= 0.1;
+			map.geom.camera_rot.x -= 0.1;
 		draw(&map);
 		display_fps(&map);
 		lsync();
