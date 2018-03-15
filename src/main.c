@@ -101,6 +101,7 @@ t_vec3	rot_matrix(double alpha, double beta, double gamma, t_vec3 r)
 	double		mat[3][3];
 	t_vec3		ret;
 
+	
 	mat[0][0] = cos(beta) * cos(gamma);
 	mat[1][0] = cos(gamma) * sin(alpha) * sin(beta) - cos(alpha) * sin(gamma);
 	mat[2][0] = cos(alpha) * cos(gamma) * sin(beta) + sin(alpha) * sin(gamma);
@@ -190,6 +191,14 @@ t_vec3	CanvasToViewport(t_map *m, float x, float y)
 	return (D);
 }
 
+float	deg_to_rad(float degree)
+{
+	float	radians;
+
+	radians = (degree * M_PI) / 180;
+	return (radians);
+}
+
 float	dot(t_vec3 a, t_vec3 b)
 {
 	return (a.x * b.x + a.y * b.y + a.z * b.z);
@@ -232,7 +241,7 @@ double		ComputeLighting(t_object *obj, t_vec3 P, t_vec3 N, t_vec3 V, float specu
 
 	light[3].type = POINT;
 	light[3].intensity = 0.6;
-	light[3].position = (t_vec3){-2, 0, 0.5};
+	light[3].position = (t_vec3){-2, 1, 0.5};
 	light[3].direction = (t_vec3){0, 0, 0}; // NULL;
 
 	i = 0.0;
@@ -246,7 +255,7 @@ double		ComputeLighting(t_object *obj, t_vec3 P, t_vec3 N, t_vec3 V, float specu
 			if (light[j].type == POINT)
 			{
 				L = vec_sub(light[j].position, P);
-				max = 1.0f;
+				max = 0.99f;
 			}
 			else
 			{
@@ -295,24 +304,6 @@ t_vec2	find_discriminant(float k[3])
 	return (t);
 }
 
-// float get_lim_solution(float t, t_vec3 P, t_vec3 V, t_vec3 VA, t_object *obj)
-// {
-// 	t_vec3	q;
-// 	t_vec3	a;
-// 	float k[2];
-
-// 	if (t < 0)
-// 		return (INFINITY);
-// 	q = vec_add(vec_f_mult(t, V), P);
-// 	a = vec_sub(q, obj->center);
-// 	k[0] = dot(VA, a);
-// 	a = vec_sub(q, obj->direction);
-// 	k[1] = dot(VA, a);
-// 	if (k[0] > 0 && k[1] < 0 && t > 0)
-// 		return (t);
-// 	return (INFINITY);
-// }
-
 double		get_lim_solution(double t, t_vec3 P, t_vec3 V, t_vec3 VA, t_object *obj)
 {
 	t_vec3	Q;
@@ -323,16 +314,49 @@ double		get_lim_solution(double t, t_vec3 P, t_vec3 V, t_vec3 VA, t_object *obj)
 	Q = vec_add(P, vec_f_mult(t, V));
 	k[0] = dot(VA, vec_sub(Q, obj->center));
 	k[1] = dot(VA, vec_sub(Q, obj->direction));
-	if (k[0] > 0.0 && k[1] < 0.0)
+	if (k[0] < 0.0 && k[1] > 0.0)
 		return (t);
 	return (INFINITY);
 }
+
+t_vec2	IntersectRayCone(t_vec3 P, t_vec3 V, t_object *obj)
+{
+	t_vec3	PA;
+	t_vec3	VA;
+	t_vec3	deltaP;
+	t_vec3	A;
+	t_vec3	B;
+	t_vec2	t;
+	float	k[3];
+	float	angle;
+	float	POWCOS;
+	float	POWSIN;
+
+	angle = deg_to_rad(obj->angle);
+	PA = obj->center;
+	VA = normal(vec_sub(PA, obj->direction));
+	deltaP = vec_sub(P, PA);
+
+	A = vec_sub(V, vec_f_mult(dot(V, VA), VA));
+	B = vec_sub(deltaP, vec_f_mult(dot(deltaP, VA), VA));
+	POWCOS = cos(angle) * cos(angle);
+	POWSIN = sin(angle) * sin(angle);
+
+	k[0] = POWCOS * dot(A, A) - POWSIN * dot(V, VA) * dot(V, VA);
+	k[1] = 2.0f * POWCOS * dot(A, B) - 2.0f * POWSIN * dot(V, VA) * dot(deltaP, VA);
+	k[2] = POWCOS * dot(B, B) - POWSIN * dot(deltaP, VA) * dot(deltaP, VA);
+	t = find_discriminant(k);
+	t.x = get_lim_solution(t.x, P, V, VA, obj);
+	t.y = get_lim_solution(t.y, P, V, VA, obj);
+	return (t);
+}
+
 
 t_vec2	IntersectRayCylinder(t_vec3 P, t_vec3 V, t_object *obj)
 {
 	t_vec3	PA;
 	t_vec3	VA;
-	t_vec3	delta;
+	t_vec3	deltaP;
 	t_vec3	A;
 	t_vec3	B;
 	t_vec2	t;
@@ -340,17 +364,17 @@ t_vec2	IntersectRayCylinder(t_vec3 P, t_vec3 V, t_object *obj)
 
 	PA = obj->center;
 	VA = normal(vec_sub(PA, obj->direction));
-	delta = vec_sub(P, PA);
+	deltaP = vec_sub(P, PA);
 
 	A = vec_sub(V, vec_f_mult(dot(V, VA), VA));
-	B = vec_sub(delta, vec_f_mult(dot(delta, VA), VA));
+	B = vec_sub(deltaP, vec_f_mult(dot(deltaP, VA), VA));
 
 	k[0] = dot(A, A);
 	k[1] = 2.0f * dot(A, B);
 	k[2] = dot(B, B) - obj->radius * obj->radius;
 	t = find_discriminant(k);
-	// t.x = get_lim_solution(t.x, P, V, VA, obj);
-	// t.y = get_lim_solution(t.y, P, V, VA, obj);
+	t.x = get_lim_solution(t.x, P, V, VA, obj);
+	t.y = get_lim_solution(t.y, P, V, VA, obj);
 	return (t);
 }
 
@@ -410,6 +434,8 @@ void	ClosestIntersection(t_traceray *tr, t_object *obj,
 			t = IntersectRayPlane(O, D, &obj[i]);
 		else if (obj[i].name == CYLINDER)
 			t = IntersectRayCylinder(O, D, &obj[i]);
+		else if (obj[i].name == CONE)
+			t = IntersectRayCone(O, D, &obj[i]);
 		if (t.x > t_min && t.x < t_max && t.x < tr->closest_t)
 		{
 			tr->closest_t = t.x;
@@ -423,17 +449,28 @@ void	ClosestIntersection(t_traceray *tr, t_object *obj,
 	}
 }
 
-t_vec3	normal_cyl_cone(t_traceray *tr, t_vec3 P)
+t_vec3	global_normal(t_vec3 P, t_traceray *tr)
 {
-	t_vec3 os;
-	t_vec3 proj;
-	t_vec3 N;
+	t_vec3	N;
+	t_vec3	os;
+	t_vec3	proj;
 
-	os = normal(vec_sub(tr->closest_obj.direction, tr->closest_obj.center));
-	N = vec_sub(P, tr->closest_obj.center);
-	proj = vec_f_mult(dot(N, os), os);
-	N = vec_sub(N, proj);
-	N = normal(N);
+	if (tr->closest_obj.name == SPHERE)
+	{
+		N = vec_sub(P, tr->closest_obj.center);
+		N = normal(N);
+		return (N);
+	}
+	if (tr->closest_obj.name == CYLINDER || tr->closest_obj.name == CONE)
+	{
+		os = normal(vec_sub(tr->closest_obj.direction, tr->closest_obj.center));
+		N = vec_sub(P, tr->closest_obj.center);
+		proj = vec_f_mult(dot(N, os), os);
+		N = vec_sub(N, proj);
+		N = normal(N);
+		return (N);
+	}
+	N = tr->closest_obj.direction; // PLANE
 	return (N);
 }
 
@@ -449,43 +486,45 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 	double		intensity;
 
 	obj[0].name = SPHERE;
-	obj[0].center = (t_vec3){0, 0, 2};
+	obj[0].center = (t_vec3){0, 0.99, 2};
 	obj[0].color = (t_vec3){255, 0, 0};
 	obj[0].specular = 50;
 	obj[0].radius = 1; // red
 	obj[0].reflection = 0.3;
 	
 	obj[1].name = SPHERE;
-	obj[1].center = (t_vec3){-2, 0, 3};
+	obj[1].center = (t_vec3){-2, 0.99, 3};
 	obj[1].color = (t_vec3){0, 0, 255};
 	obj[1].specular = 50;
 	obj[1].radius = 1; // blue
 	obj[1].reflection = 0.3;
 	
 	obj[2].name = SPHERE;
-	obj[2].center = (t_vec3){2, 0, 3};
+	obj[2].center = (t_vec3){2, 0.99, 3};
 	obj[2].color = (t_vec3){0, 255, 0};
 	obj[2].specular = 50;
 	obj[2].radius = 1; //  green
 	obj[2].reflection = 0.3;
 	
 	obj[3].name = CONE;
-	obj[3].center = (t_vec3){0, -101, 0};
-	obj[3].color = (t_vec3){255, 255, 255};
+	obj[3].center = (t_vec3){-2, 1, 0};
+	obj[3].direction = (t_vec3){-2, 0, 0};
+	obj[3].color = (t_vec3){0, 0, 255};
 	obj[3].specular = 1000;
 	obj[3].radius = 1; //  white
 	obj[3].reflection = 0.3;
+	obj[3].angle = 30;
 
 	obj[4].name = CYLINDER;
-	obj[4].center = (t_vec3){0, 1, 0};
-	obj[4].direction = (t_vec3){0, 3, 0};
+	obj[4].center = (t_vec3){2, 0, 0};
+	obj[4].direction = (t_vec3){2, 1, 0};
 	obj[4].color = (t_vec3){0, 255, 0};
 	obj[4].specular = 1000;
 	obj[4].radius = 0.5; //  white
 	obj[4].reflection = 0.3;
 
 	obj[5].name = PLANE;
-	obj[5].center = (t_vec3){0, -0.99, 0};
+	obj[5].center = (t_vec3){0, 0, 0};
 	obj[5].color = (t_vec3){255, 255, 255};
 	obj[5].direction = (t_vec3){0, 1, 0};
 	obj[5].specular = 1000;
@@ -510,15 +549,7 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 			break ;
 		}
 		P = vec_add(geom.O, vec_f_mult(tr.closest_t, geom.D)); //compute intersection
-		if (tr.closest_obj.name == SPHERE)
-		{
-			N = vec_sub(P, tr.closest_obj.center); //compute obj normal at intersection
-			N = normal(N);
-		}
-		else if (tr.closest_obj.name == CYLINDER || tr.closest_obj.name == CONE)
-			N = normal_cyl_cone(&tr, P);
-		else if (tr.closest_obj.name == PLANE)
-			N = tr.closest_obj.direction;
+		N = global_normal(P, &tr);
 		t_vec3 DD = (t_vec3){-geom.D.x, -geom.D.y, -geom.D.z, 0};
 		intensity = ComputeLighting(obj, P, N, DD, tr.closest_obj.specular); // -D
 		local_color[deep] = vec_f_mult(intensity, tr.closest_obj.color);
@@ -578,7 +609,7 @@ int		main(int argc, char **argv)
 		if (!key_function(&map))
 			break ;
 		if (map.flag)
-			map.geom.camera_rot.x -= 0.1;
+			map.geom.camera_rot.x += 0.1;
 		draw(&map);
 		display_fps(&map);
 		lsync();

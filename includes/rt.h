@@ -85,6 +85,7 @@ typedef	struct	s_object
 	float		radius;
 	float		specular;
 	float		reflection;
+	float		angle;
 }				t_object;
 
 typedef struct	s_viewport

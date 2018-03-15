@@ -33,8 +33,8 @@ void	init_geometry(t_map *m)
 
 	//*camera
 	m->geom.O.x = 0;
-	m->geom.O.y = 0;
-	m->geom.O.z = -7;
+	m->geom.O.y = 2;
+	m->geom.O.z = -5;
 	m->geom.camera_rot.x = 0;
 	m->geom.camera_rot.y = 0;
 	m->geom.camera_rot.z = 0;
