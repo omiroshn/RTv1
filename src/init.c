@@ -35,9 +35,9 @@ void	init_geometry(t_map *m)
 	m->geom.O.x = 0;
 	m->geom.O.y = 2;
 	m->geom.O.z = -5;
-	m->geom.camera_rot.x = 0;
-	m->geom.camera_rot.y = 0;
-	m->geom.camera_rot.z = 0;
+	m->geom.camera_rot.x = deg_to_rad(15);
+	m->geom.camera_rot.y = deg_to_rad(0);
+	m->geom.camera_rot.z = deg_to_rad(0);
 	//*
 
 	//*viewport

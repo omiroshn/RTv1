@@ -80,10 +80,10 @@ typedef	struct	s_object
 {
 	int			name;
 	t_vec3		center;
-	t_vec3		color;
 	t_vec3		direction;
-	float		radius;
+	t_vec3		color;
 	float		specular;
+	float		radius;
 	float		reflection;
 	float		angle;
 }				t_object;
@@ -126,6 +126,7 @@ typedef	struct	s_map
 	int			flag;
 }				t_map;
 
+float	deg_to_rad(float degree);
 void	ClosestIntersection(t_traceray *tr, t_object *obj, 
 								t_vec3 O, t_vec3 D, float t_min, float t_max);
 
