@@ -36,9 +36,7 @@
 # define MAPS_FOLDER "resources/maps/"
 # define FONTS_FOLDER "resources/fonts/"
 
-# define THREADS 8
 # define TRUE 1
-# define BACKGROUND_COLOR 0
 
 # define AMBIENT 1
 # define POINT 2
@@ -110,6 +108,10 @@ typedef	struct	s_geom
 	int			color;
 	float		t_min;
 	float		t_max;
+	int			objects;
+	int			lights;
+	t_object	*obj;
+	t_light		*light;
 }				t_geom;
 
 typedef	struct	s_map
@@ -126,8 +128,9 @@ typedef	struct	s_map
 	int			flag;
 }				t_map;
 
+void	read_map(t_map *m, char *filename);
 float	deg_to_rad(float degree);
-void	ClosestIntersection(t_traceray *tr, t_object *obj, 
+void	ClosestIntersection(t_traceray *tr, t_geom *geom, 
 								t_vec3 O, t_vec3 D, float t_min, float t_max);
 
 /*

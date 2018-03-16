@@ -212,7 +212,7 @@ t_vec3	ReflectRay(t_vec3 R, t_vec3 N)
     return (res);
 }
 
-double		ComputeLighting(t_object *obj, t_vec3 P, t_vec3 N, t_vec3 V, float specular)
+double		ComputeLighting(t_geom *geom, t_vec3 P, t_vec3 N, t_vec3 V, float specular)
 {
 	double		i;
 	int			j;
@@ -221,45 +221,24 @@ double		ComputeLighting(t_object *obj, t_vec3 P, t_vec3 N, t_vec3 V, float specu
 	float		nl;
 	float		rv;
 	float		max;
-	t_light		light[4];
 	t_traceray	shadow;
-
-	light[0].type = AMBIENT;
-	light[0].intensity = 0.2;
-	light[0].position = (t_vec3){0, 0, 0}; // NULL;
-	light[0].direction = (t_vec3){0, 0, 0}; // NULL;
-
-	light[1].type = POINT;
-	light[1].intensity = 0.6;
-	light[1].position = (t_vec3){2, 0, 0.5};
-	light[1].direction = (t_vec3){0, 0, 0}; // NULL;
-
-	light[2].type = DIRECTIONAL;
-	light[2].intensity = 0.2;
-	light[2].position = (t_vec3){0, 0, 0}; // NULL;
-	light[2].direction = (t_vec3){1, 4, 4};
-
-	light[3].type = POINT;
-	light[3].intensity = 0.6;
-	light[3].position = (t_vec3){-2, 1, 0.5};
-	light[3].direction = (t_vec3){0, 0, 0}; // NULL;
 
 	i = 0.0;
 	j = -1;
-	while (++j < 4)
+	while (++j < geom->lights)
 	{
-		if (light[j].type == AMBIENT)
-			i += light[j].intensity;
+		if (geom->light[j].type == AMBIENT)
+			i += geom->light[j].intensity;
 		else
 		{
-			if (light[j].type == POINT)
+			if (geom->light[j].type == POINT)
 			{
-				L = vec_sub(light[j].position, P);
+				L = vec_sub(geom->light[j].position, P);
 				max = 0.99f;
 			}
 			else
 			{
-				L = light[j].direction;
+				L = geom->light[j].direction;
 				max = INFINITY;
 			}
 
@@ -268,14 +247,14 @@ double		ComputeLighting(t_object *obj, t_vec3 P, t_vec3 N, t_vec3 V, float specu
 				continue ;
 			
 			// Проверка тени
-			ClosestIntersection(&shadow, obj, P, L, 0.001, max);
+			ClosestIntersection(&shadow, geom, P, L, 0.001, max);
 			if (shadow.closest_t != INFINITY)
 				continue ;
 
 			// Диффузность
 			nl = dot(N, L);
 			if (nl > 0)
-				i += light[j].intensity * nl / (vec_lenght(N) * vec_lenght(L));
+				i += geom->light[j].intensity * nl / (vec_lenght(N) * vec_lenght(L));
 
 			// Зеркальность
 			if (specular >= 0)
@@ -283,7 +262,7 @@ double		ComputeLighting(t_object *obj, t_vec3 P, t_vec3 N, t_vec3 V, float specu
 				R = vec_sub(vec_f_mult(dot(N, L), vec_f_mult(2.0, N)), L); //vec_sub(vec_f_mult((dot(N, L) * 2), N), L);
 				rv = dot(R, V);
 				if (rv > 0)
-					i += light[j].intensity * pow(rv / (vec_lenght(R) * vec_lenght(V)), specular);
+					i += geom->light[j].intensity * pow(rv / (vec_lenght(R) * vec_lenght(V)), specular);
 			}
 		}
 	}
@@ -418,7 +397,7 @@ t_vec2	IntersectRayPlane(t_vec3 O, t_vec3 D, t_object *obj)
 	return ((t_vec2){INFINITY, INFINITY});
 }
 
-void	ClosestIntersection(t_traceray *tr, t_object *obj, 
+void	ClosestIntersection(t_traceray *tr, t_geom *geom, 
 								t_vec3 O, t_vec3 D, float t_min, float t_max)
 {
 	int			i;
@@ -426,25 +405,25 @@ void	ClosestIntersection(t_traceray *tr, t_object *obj,
 
 	tr->closest_t = INFINITY;
 	i = -1;
-	while (++i < 6)
+	while (++i < geom->objects)
 	{
-		if (obj[i].name == SPHERE)
-			t = IntersectRaySphere(O, D, &obj[i]);
-		else if (obj[i].name == PLANE)
-			t = IntersectRayPlane(O, D, &obj[i]);
-		else if (obj[i].name == CYLINDER)
-			t = IntersectRayCylinder(O, D, &obj[i]);
-		else if (obj[i].name == CONE)
-			t = IntersectRayCone(O, D, &obj[i]);
+		if (geom->obj[i].name == SPHERE)
+			t = IntersectRaySphere(O, D, &geom->obj[i]);
+		else if (geom->obj[i].name == PLANE)
+			t = IntersectRayPlane(O, D, &geom->obj[i]);
+		else if (geom->obj[i].name == CYLINDER)
+			t = IntersectRayCylinder(O, D, &geom->obj[i]);
+		else if (geom->obj[i].name == CONE)
+			t = IntersectRayCone(O, D, &geom->obj[i]);
 		if (t.x > t_min && t.x < t_max && t.x < tr->closest_t)
 		{
 			tr->closest_t = t.x;
-			tr->closest_obj = obj[i];
+			tr->closest_obj = geom->obj[i];
 		}
 		if (t.y > t_min && t.y < t_max && t.y < tr->closest_t)
 		{
 			tr->closest_t = t.y;
-			tr->closest_obj = obj[i];
+			tr->closest_obj = geom->obj[i];
 		}
 	}
 }
@@ -477,58 +456,12 @@ t_vec3	global_normal(t_vec3 P, t_traceray *tr)
 int		RayTrace(t_geom geom, float t_min, float t_max)
 {
 	t_traceray	tr;
-	t_object	obj[6];
 	t_vec3		P;
 	t_vec3		N;
 	t_vec3		R;
 	t_vec3		local_color[DEEP + 1];
 	int			deep;
 	double		intensity;
-
-	obj[0].name = SPHERE;
-	obj[0].center = (t_vec3){0, 0.99, 2};
-	obj[0].color = (t_vec3){255, 0, 0};
-	obj[0].specular = 50;
-	obj[0].radius = 1; // red
-	obj[0].reflection = 0.3;
-	
-	obj[1].name = SPHERE;
-	obj[1].center = (t_vec3){-2, 0.99, 3};
-	obj[1].color = (t_vec3){0, 0, 255};
-	obj[1].specular = 50;
-	obj[1].radius = 1; // blue
-	obj[1].reflection = 0.3;
-	
-	obj[2].name = SPHERE;
-	obj[2].center = (t_vec3){2, 0.99, 3};
-	obj[2].color = (t_vec3){0, 255, 0};
-	obj[2].specular = 50;
-	obj[2].radius = 1; //  green
-	obj[2].reflection = 0.3;
-	
-	obj[3].name = CONE;
-	obj[3].center = (t_vec3){-2, 1, 0};
-	obj[3].direction = (t_vec3){-2, 0, 0};
-	obj[3].color = (t_vec3){0, 0, 255};
-	obj[3].specular = 1000;
-	obj[3].radius = 1; //  white
-	obj[3].reflection = 0.3;
-	obj[3].angle = 30;
-
-	obj[4].name = CYLINDER;
-	obj[4].center = (t_vec3){2, 0, 0};
-	obj[4].direction = (t_vec3){2, 1, 0};
-	obj[4].color = (t_vec3){0, 255, 0};
-	obj[4].specular = 1000;
-	obj[4].radius = 0.5; //  white
-	obj[4].reflection = 0.3;
-
-	obj[5].name = PLANE;
-	obj[5].center = (t_vec3){0, 0, 0};
-	obj[5].color = (t_vec3){255, 255, 255};
-	obj[5].direction = (t_vec3){0, 1, 0};
-	obj[5].specular = 1000;
-	obj[5].reflection = 0.5; //  white
 
 	deep = DEEP;
 	while (deep >= 0)
@@ -542,7 +475,7 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 	deep = DEEP;
 	while (deep >= 0)
 	{
-		ClosestIntersection(&tr, obj, geom.O, geom.D, t_min, t_max);
+		ClosestIntersection(&tr, &geom, geom.O, geom.D, t_min, t_max);
 		if (tr.closest_t == INFINITY)
 		{
 			local_color[deep] = (t_vec3){0,0,0};
@@ -551,7 +484,7 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 		P = vec_add(geom.O, vec_f_mult(tr.closest_t, geom.D)); //compute intersection
 		N = global_normal(P, &tr);
 		t_vec3 DD = (t_vec3){-geom.D.x, -geom.D.y, -geom.D.z, 0};
-		intensity = ComputeLighting(obj, P, N, DD, tr.closest_obj.specular); // -D
+		intensity = ComputeLighting(&geom, P, N, DD, tr.closest_obj.specular); // -D
 		local_color[deep] = vec_f_mult(intensity, tr.closest_obj.color);
 
 
@@ -559,7 +492,8 @@ int		RayTrace(t_geom geom, float t_min, float t_max)
 		if (tr.closest_obj.reflection > 0)
 		{
 			R = ReflectRay(DD, N);
-			geom = (t_geom){P, R, geom.camera_rot, geom.color};
+			geom = (t_geom){P, R, geom.camera_rot, geom.color, geom.t_min,
+				geom.t_max, geom.objects, geom.lights, geom.obj, geom.light};
 			deep--;
 		}
 		else
@@ -580,15 +514,12 @@ void	draw(t_map *m)
 	int x;
 	int y;
 
-	// if (m->flag)
-	// 	m->geom.O.y = sin(m->geom.camera_rot.y);
 	x = -1;
 	while (++x < m->screen->w && (y = -1))
 	{
 		while (++y < m->screen->h)
 		{
-			m->geom.D = rot_matrix(m->geom.camera_rot.x,
-				m->geom.camera_rot.y,m->geom.camera_rot.z,
+			m->geom.D = rot_matrix(m->geom.camera_rot.x, m->geom.camera_rot.y, m->geom.camera_rot.z,
 				CanvasToViewport(m, x - m->screen->w / 2, m->screen->h / 2 - y));
 			m->geom.color = RayTrace(m->geom, 0.001f, INFINITY);
 			m->image[x + y * m->screen->w] = m->geom.color;
@@ -600,6 +531,9 @@ int		main(int argc, char **argv)
 {
 	t_map	map;
 
+	if (argc != 2)
+		put_usage();
+	read_map(&map, argv[1]);
 	init(&map);
 	init_geometry(&map);
 	// kernel_init();
@@ -608,8 +542,7 @@ int		main(int argc, char **argv)
 		ft_bzero(map.screen->pixels, map.screen->w * map.screen->h * 4);
 		if (!key_function(&map))
 			break ;
-		if (map.flag)
-			map.geom.camera_rot.x += 0.1;
+		map.flag ? map.geom.camera_rot.x += 0.1 : 0;
 		draw(&map);
 		display_fps(&map);
 		lsync();

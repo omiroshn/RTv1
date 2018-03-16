@@ -22,7 +22,7 @@ void	put_error(const char *msg)
 
 void	put_usage(void)
 {
-	ft_putendl("Usage: ./RTv1 resources/maps/map1.map");
+	ft_putendl("Usage: ./RTv1 scenes/scene.1");
 	exit(-1);
 }
 
