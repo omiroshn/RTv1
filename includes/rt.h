@@ -114,20 +114,36 @@ typedef	struct	s_geom
 	t_light		*light;
 }				t_geom;
 
+typedef	struct	s_cl
+{
+	cl_device_id		device_id;
+	cl_context			context;
+	cl_command_queue	command_queue;
+	cl_mem				memobj;
+	cl_program			program;
+	cl_kernel			kernel;
+	cl_platform_id		platform_id;
+	cl_uint				ret_num_devices;
+	cl_uint				ret_num_platforms;
+	cl_int				ret;
+}				t_cl;
+
+
 typedef	struct	s_map
 {
 	SDL_Window	*window;
 	SDL_Surface	*screen;
 	SDL_Surface *fps;
 	
+	t_cl		cl;
 	t_uint		*image;
-	t_uint		*bufp;
 	t_geom		geom;
 	t_traceray	tr;
 	t_viewport	vp;
 	int			flag;
 }				t_map;
 
+void	kernel_init();
 void	read_map(t_map *m, char *filename);
 float	deg_to_rad(float degree);
 void	ClosestIntersection(t_traceray *tr, t_geom *geom, 

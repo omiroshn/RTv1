@@ -12,7 +12,7 @@
 
 NAME = RTv1
 CC = clang
-FILES = main fps put_error init parse
+FILES = main fps put_error init parse opencl
 LIBFT_DIR = libft/
 SRC = $(addprefix src/, $(addsuffix .c, $(FILES)))
 OBJ = $(addprefix obj/, $(addsuffix .o, $(FILES)))
