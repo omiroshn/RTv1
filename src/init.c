@@ -30,9 +30,11 @@ void	init(t_map *m)
 void	init_geometry(t_map *m)
 {
 	m->flag = 0;
-	m->vp.w = 1.0f;
-	m->vp.h = 1.0f;
-	m->vp.dist = 1.0f;
+	m->geom.vp.w = 1.0f;
+	m->geom.vp.h = 1.0f;
+	m->geom.vp.dist = 1.0f;
+	m->geom.screenw = m->screen->w;
+	m->geom.screenh = m->screen->h;
 	m->geom.t_min = 0.001f;
 	m->geom.t_max = INFINITY;
 }

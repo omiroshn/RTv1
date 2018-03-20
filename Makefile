@@ -12,7 +12,7 @@
 
 NAME = RTv1
 CC = clang
-FILES = main fps put_error init parse opencl
+FILES = main fps put_error init parse opencl system read
 LIBFT_DIR = libft/
 SRC = $(addprefix src/, $(addsuffix .c, $(FILES)))
 OBJ = $(addprefix obj/, $(addsuffix .o, $(FILES)))
@@ -21,7 +21,7 @@ SDL_CFLAGS = $(shell sdl2-config --cflags)
 SPEED = -O3
 FLAGS = 
 HEADERS = -I./includes -I./libft/includes
-HDRS = ./includes/rt.h ./includes/opencl.h
+HDRS = ./includes/rt.h
 MAKELIB = --no-print-directory -j3 -C
 
 OS = $(shell uname)

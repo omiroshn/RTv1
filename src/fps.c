@@ -12,7 +12,7 @@
 
 #include "rt.h"
 
-void	lsync(void)
+void		lsync(void)
 {
 	int					delay;
 	static unsigned int	time;
@@ -35,7 +35,7 @@ static void	color_fps(t_map *m, t_uint fps, TTF_Font *ttf, char *fps_str)
 	int r;
 	int g;
 	int b;
-	
+
 	if (fps >= 40)
 	{
 		r = 0;
@@ -54,19 +54,17 @@ static void	color_fps(t_map *m, t_uint fps, TTF_Font *ttf, char *fps_str)
 		g = 0;
 		b = 0;
 	}
-	m->fps = TTF_RenderText_Solid(ttf, fps_str,
+	m->fps = TTF_RenderText_Solid(m->ttf, fps_str,
 					(SDL_Color){r, g, b, 255});
 }
 
-void	display_fps(t_map *m)
+void		display_fps(t_map *m)
 {
 	static t_uint	fps;
 	static t_uint	time_current;
 	static t_uint	time_past;
 	static t_uint	ticks;
-	TTF_Font		*ttf;
 	static char		*fps_str;
-	t_vec3			rgb;
 
 	time_current = time(NULL);
 	if (time_current - time_past && (time_past = time_current))
@@ -76,11 +74,11 @@ void	display_fps(t_map *m)
 		fps_str = ft_itoa(fps);
 	}
 	ticks = SDL_GetTicks();
-	if (!(ttf = TTF_OpenFont(FONTS_FOLDER"arcadeclassic.regular.ttf", 50)))
+	if (!(m->ttf = TTF_OpenFont(FONTS_FOLDER"arcadeclassic.regular.ttf", 50)))
 		put_error(IMG_GetError());
-	color_fps(m, fps, ttf, fps_str);
+	color_fps(m, fps, m->ttf, fps_str);
 	SDL_BlitSurface(m->fps, NULL, m->screen,
 		&(SDL_Rect){ 10, 0, m->fps->w, m->fps->h});
-	TTF_CloseFont(ttf);
+	TTF_CloseFont(m->ttf);
 	SDL_FreeSurface(m->fps);
 }
