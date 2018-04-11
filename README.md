@@ -23,7 +23,7 @@ WASD - rotating camera
 Arrows - moving camera
 R - reset camera rotation
 ```
-<img align="left"  src="https://github.com/omiroshn/RTv1/blob/master/Images/1.png" width="60%" />
-<img align="left"  src="https://github.com/omiroshn/RTv1/blob/master/Images/2.png" width="60%" />
-<img align="left"  src="https://github.com/omiroshn/RTv1/blob/master/Images/3.png" width="60%" />
-<img align="left"  src="https://github.com/omiroshn/RTv1/blob/master/Images/4.png" width="60%" />
+<img align="center"  src="https://github.com/omiroshn/RTv1/blob/master/Images/1.png" width="100%" />
+<img align="center"  src="https://github.com/omiroshn/RTv1/blob/master/Images/2.png" width="100%" />
+<img align="center"  src="https://github.com/omiroshn/RTv1/blob/master/Images/3.png" width="100%" />
+<img align="center"  src="https://github.com/omiroshn/RTv1/blob/master/Images/4.png" width="100%" />
