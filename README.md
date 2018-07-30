@@ -1,9 +1,3 @@
-#                        **  Message to 42 students  **
-You are free to copy, modify and share under your name my exercises. But you
-will learn nothing, or will have the impression to understand without be able
-to do it again alone. Be responsible and simply ask for help.
-
-                                                                         omiroshn
 # RTv1
 
 ### Description
@@ -33,3 +27,10 @@ R - reset camera rotation
 <img align="center"  src="https://github.com/omiroshn/RTv1/blob/master/Images/2.png" width="100%" />
 <img align="center"  src="https://github.com/omiroshn/RTv1/blob/master/Images/3.png" width="100%" />
 <img align="center"  src="https://github.com/omiroshn/RTv1/blob/master/Images/4.png" width="100%" />
+
+#                        **  Message to 42 students  **
+You are free to copy, modify and share under your name my exercises. But you
+will learn nothing, or will have the impression to understand without be able
+to do it again alone. Be responsible and simply ask for help.
+
+                                                                         omiroshn
